@@ -2117,6 +2117,10 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
         cb(weights, "ffn_moe_weights_expanded", il);
 
         if (sel_count_out) {
+            // mark as graph output: with no consumer downstream, the allocator
+            // would otherwise recycle its buffer during the compute (the host
+            // reads it back only after the whole graph has run)
+            ggml_set_output(sel_count_out);
             ggml_build_forward_expand(gf, sel_count_out);
             // note: weights->ne[2] is the number of tokens this layer's FFN
             // processes in this graph: late layers may see fewer tokens than the
