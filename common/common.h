@@ -467,6 +467,17 @@ struct common_params {
     float   yarn_beta_slow        = -1.0f; // YaRN high correction dim
     int32_t yarn_orig_ctx         =     0; // YaRN original context length
 
+    // MoE expert expansion: runtime-only routing change that raises the routed
+    // expert budget above the model's native top-K (docs/moe-expansion.md).
+    // all defaults = feature off, stock routing
+    int32_t moe_experts            =  0;    // max routed experts per token N, absolute (0 = model default; exclusive with moe_experts_add)
+    int32_t moe_experts_add        =  0;    // experts added on top of the model's native top-K (0 = off)
+    float   moe_expert_threshold   =  0.0f; // keep experts while p >= T * p(rank N/2); 0 = off, range (0, 10]
+    float   moe_expert_decay_end   =  0.5f; // influence of the last extra rank; linear 0.99..D, range (0, 0.99)
+    bool    moe_no_expert_decay    = false; // extra experts at full influence (disable the decay)
+    float   moe_expert_layer_start =  0.0f; // first layer with expansion; < 1: fraction of n_layer, >= 1: layer index
+    float   moe_expert_layer_end   = -1.0f; // last layer (inclusive); < 0: last layer, < 1: fraction of n_layer, >= 1: layer index
+
     // offload params
     std::vector<ggml_backend_dev_t> devices; // devices to use for offloading
 

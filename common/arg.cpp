@@ -1768,6 +1768,71 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
                                    string_format("error: unknown value for --flash-attn: '%s'\n", value.c_str()));
                            }
                        }).set_env("LLAMA_ARG_FLASH_ATTN"));
+    // MoE expert expansion (docs/moe-expansion.md); --q35-* are the ds4-compatible aliases
+    add_opt(common_arg(
+        {"--moe-experts", "--q35-experts"}, "N",
+        "MoE expert expansion: max routed experts per token N, replaces the model's native top-K (default: 0 = model default; exclusive with --moe-experts-add)",
+        [](common_params & params, int value) {
+            if (value < 0) {
+                throw std::invalid_argument("--moe-experts must be >= 0 (0 = model default)");
+            }
+            params.moe_experts = value;
+        }
+    ).set_env("LLAMA_ARG_MOE_EXPERTS"));
+    add_opt(common_arg(
+        {"--moe-experts-add"}, "N",
+        "MoE expert expansion: add N routed experts on top of the model's native top-K (default: 0 = off; exclusive with --moe-experts)",
+        [](common_params & params, int value) {
+            if (value < 0) {
+                throw std::invalid_argument("--moe-experts-add must be >= 0 (0 = off)");
+            }
+            params.moe_experts_add = value;
+        }
+    ).set_env("LLAMA_ARG_MOE_EXPERTS_ADD"));
+    add_opt(common_arg(
+        {"--moe-expert-threshold", "--q35-expert-threshold"}, "T",
+        "MoE expert expansion: adaptive expert count - keep experts while p >= T x p(rank N/2), at least N/4 and at most N; T in (0, 10], T <= 1 only expands, T > 1 can also prune (default: 0 = fixed count N)",
+        [](common_params & params, const std::string & value) {
+            params.moe_expert_threshold = std::stof(value);
+            if (params.moe_expert_threshold < 0.0f || params.moe_expert_threshold > 10.0f) {
+                throw std::invalid_argument("--moe-expert-threshold must be in (0, 10] (0 = fixed count)");
+            }
+        }
+    ).set_env("LLAMA_ARG_MOE_EXPERT_THRESHOLD"));
+    add_opt(common_arg(
+        {"--moe-expert-decay-end"}, "D",
+        "MoE expert expansion: influence factor of the last extra expert; extra ranks get a linear decay 0.99..D applied before renormalization (default: 0.50)",
+        [](common_params & params, const std::string & value) {
+            params.moe_expert_decay_end = std::stof(value);
+            if (params.moe_expert_decay_end <= 0.0f || params.moe_expert_decay_end >= 0.99f) {
+                throw std::invalid_argument("--moe-expert-decay-end must be in (0, 0.99)");
+            }
+        }
+    ).set_env("LLAMA_ARG_MOE_EXPERT_DECAY_END"));
+    add_opt(common_arg(
+        {"--moe-no-expert-decay", "--q35-no-expert-decay"},
+        "MoE expert expansion: extra experts at full influence (disable the linear decay)",
+        [](common_params & params) {
+            params.moe_no_expert_decay = true;
+        }
+    ).set_env("LLAMA_ARG_MOE_NO_EXPERT_DECAY"));
+    add_opt(common_arg(
+        {"--moe-expert-layer-start"}, "I",
+        "MoE expert expansion: first transformer layer it applies to; fraction of n_layer if < 1 (e.g. 0.5 = second half), absolute index if >= 1 (default: 0 = all layers)",
+        [](common_params & params, const std::string & value) {
+            params.moe_expert_layer_start = std::stof(value);
+            if (params.moe_expert_layer_start < 0.0f) {
+                throw std::invalid_argument("--moe-expert-layer-start must be >= 0");
+            }
+        }
+    ).set_env("LLAMA_ARG_MOE_EXPERT_LAYER_START"));
+    add_opt(common_arg(
+        {"--moe-expert-layer-end"}, "I",
+        "MoE expert expansion: last transformer layer it applies to (inclusive); fraction of n_layer if < 1, absolute index if >= 1 (default: -1 = last layer)",
+        [](common_params & params, const std::string & value) {
+            params.moe_expert_layer_end = std::stof(value);
+        }
+    ).set_env("LLAMA_ARG_MOE_EXPERT_LAYER_END"));
     add_opt(common_arg(
         {"-p", "--prompt"}, "PROMPT",
         "prompt to start generation with; for system message, use -sys",

@@ -15,7 +15,9 @@
 
 #include <cinttypes>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
+#include <algorithm>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -141,6 +143,88 @@ llama_context::llama_context(
     cparams.cb_eval_user_data = params.cb_eval_user_data;
 
     cparams.ctx_other = nullptr;
+
+    // MoE expert expansion: validate the request, resolve the layer range
+    // against the loaded model and print the startup banner. the routing
+    // change itself happens in llm_graph_context::build_moe_ffn.
+    if (params.moe_experts != 0 || params.moe_experts_add != 0) {
+        if (params.moe_experts != 0 && params.moe_experts_add != 0) {
+            throw std::runtime_error("moe expert expansion: moe_experts and moe_experts_add are mutually exclusive");
+        }
+        if (hparams.n_expert == 0 || hparams.n_expert_used() == 0) {
+            throw std::runtime_error("moe expert expansion: model is not MoE (expert_count/expert_count_used missing)");
+        }
+        if (hparams.n_expert_groups > 1) {
+            throw std::runtime_error("moe expert expansion: grouped expert routing (n_expert_groups > 1) is not supported");
+        }
+
+        const int32_t n_layer = (int32_t) hparams.n_layer();
+        const int32_t k       = (int32_t) hparams.n_expert_used();
+
+        const int32_t n = params.moe_experts != 0 ?
+            params.moe_experts : k + params.moe_experts_add;
+        if (n < 2) {
+            throw std::runtime_error("moe expert expansion: N must be >= 2 (reference rank N/2)");
+        }
+        if (n > (int32_t) hparams.n_expert) {
+            throw std::runtime_error("moe expert expansion: N = " + std::to_string(n) +
+                    " exceeds expert_count = " + std::to_string(hparams.n_expert));
+        }
+        if (params.moe_expert_threshold < 0.0f || params.moe_expert_threshold > 10.0f) {
+            throw std::runtime_error("moe expert expansion: threshold must be in (0, 10] (0 disables)");
+        }
+        if (params.moe_expert_decay_end <= 0.0f || params.moe_expert_decay_end >= 0.99f) {
+            throw std::runtime_error("moe expert expansion: decay end factor must be in (0, 0.99)");
+        }
+
+        // layer range: values < 1 are a fraction of n_layer, values >= 1 an absolute layer index
+        auto clamp_idx = [&](int32_t il) { return std::min(std::max(0, il), n_layer - 1); };
+        const int32_t il_start = params.moe_expert_layer_start <= 0.0f ? 0 :
+            params.moe_expert_layer_start < 1.0f ?
+                clamp_idx((int32_t) (params.moe_expert_layer_start * n_layer)) :
+                clamp_idx((int32_t) params.moe_expert_layer_start);
+        const int32_t il_end = params.moe_expert_layer_end < 0.0f ? n_layer - 1 :
+            params.moe_expert_layer_end < 1.0f ?
+                clamp_idx((int32_t) ceilf(params.moe_expert_layer_end * n_layer) - 1) :
+                clamp_idx((int32_t) params.moe_expert_layer_end);
+        if (il_start > il_end) {
+            throw std::runtime_error("moe expert expansion: layer start > layer end");
+        }
+
+        cparams.moe_experts         = n;
+        cparams.moe_experts_native  = k;
+        cparams.moe_expert_threshold   = params.moe_expert_threshold;
+        cparams.moe_expert_decay_end   = params.moe_expert_decay_end;
+        cparams.moe_no_expert_decay    = params.moe_no_expert_decay;
+        cparams.moe_layer_start = il_start;
+        cparams.moe_layer_end   = il_end;
+
+        // observability: experts/token stats every N decoded tokens (env-overridable, 0 = off)
+        if (const char * env = getenv("LLAMA_MOE_EXPERT_STATS_EVERY")) {
+            cparams.moe_stats_every = (uint32_t) strtoul(env, nullptr, 10);
+        } else {
+            cparams.moe_stats_every = 128;
+        }
+
+        // printed straight to stderr (like ds4): the common log system maps
+        // LLAMA_LOG_INFO to trace-level verbosity, which is filtered by default
+        if (n > k) {
+            if (params.moe_no_expert_decay) {
+                fprintf(stderr, "moe: routed experts per token: %d (model default %d; extra experts at full influence, decay disabled)\n", n, k);
+            } else {
+                fprintf(stderr, "moe: routed experts per token: %d (model default %d; ranks %d..%d get linear influence decay 0.99..%.2f)\n",
+                        n, k, k + 1, n, params.moe_expert_decay_end);
+            }
+        } else {
+            fprintf(stderr, "moe: routed experts per token: %d (model default %d)\n", n, k);
+        }
+        if (params.moe_expert_threshold > 0.0f) {
+            const int32_t min_used = std::max(1, n / 4);
+            fprintf(stderr, "moe: expert threshold: keep experts while p >= %.2f x p(rank %d) (experts %d..%d per token)\n",
+                    params.moe_expert_threshold, n / 2, min_used, n);
+        }
+        fprintf(stderr, "moe: expansion active on layers %d..%d of %d\n", il_start, il_end, n_layer);
+    }
 
     // TODO: more generic
     if (model.arch == LLM_ARCH_GEMMA4_ASSISTANT) {
@@ -1396,6 +1480,61 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
         LLAMA_LOG_ERROR("%s: failed to compute graph, compute status: %d\n", __func__, status);
         ret = status;
         return nullptr;
+    }
+
+    // MoE expert expansion observability: accumulate the per-layer selected
+    // expert counts and periodically report the experts/token averages
+    // (interval: cparams.moe_stats_every, env LLAMA_MOE_EXPERT_STATS_EVERY, 0 = off)
+    // skipped during warmup: probe/fitted graphs may leave some splits (hence
+    // the count tensors) uncomputed, which would read back garbage
+    if (cparams.moe_stats_every > 0 && !cparams.warmup && !res->moe_expert_counts.empty()) {
+        if (moe_stats_acc.empty()) {
+            moe_stats_acc.resize(model.hparams.n_layer(), 0.0);
+            moe_stats_tok.resize(model.hparams.n_layer(), 0);
+        }
+
+        for (const auto & [il, st] : res->moe_expert_counts) {
+            float cnt = 0.0f;
+            ggml_backend_tensor_get(st.sel_count, &cnt, 0, sizeof(cnt));
+            // every expanded token keeps at least F = max(1, N/4) and at most N
+            // experts: values outside [n*F, n*N] mean the tensor was not computed
+            const float min_cnt = (float) st.n_tokens * std::max(1, cparams.moe_experts / 4);
+            const float max_cnt = (float) st.n_tokens * cparams.moe_experts;
+            if (il >= 0 && il < (int) moe_stats_acc.size() && cnt >= min_cnt && cnt <= max_cnt) {
+                moe_stats_acc[il] += cnt;
+                moe_stats_tok[il] += st.n_tokens;
+            }
+        }
+
+        moe_stats_tokens += ubatch.n_tokens;
+
+        if (moe_stats_tokens >= cparams.moe_stats_every) {
+            char buf[64];
+            std::string line = "moe: experts/token avg over " +
+                std::to_string(moe_stats_tokens) + " tokens:";
+
+            double sum = 0.0;
+            int nl = 0;
+            for (const auto & [il, st] : res->moe_expert_counts) {
+                if (moe_stats_tok[il] == 0) {
+                    continue;
+                }
+                const double avg = moe_stats_acc[il] / moe_stats_tok[il];
+                sum += avg;
+                nl++;
+                snprintf(buf, sizeof(buf), " L%d:%.1f", il, avg);
+                line += buf;
+            }
+
+            snprintf(buf, sizeof(buf), " | mean %.1f\n", nl > 0 ? sum / nl : 0.0);
+            line += buf;
+            // stderr, see the startup banner comment above
+            fputs(line.c_str(), stderr);
+
+            std::fill(moe_stats_acc.begin(), moe_stats_acc.end(), 0.0);
+            std::fill(moe_stats_tok.begin(), moe_stats_tok.end(), 0);
+            moe_stats_tokens = 0;
+        }
     }
 
     ret = GGML_STATUS_SUCCESS;
@@ -3652,6 +3791,13 @@ llama_context_params llama_context_default_params() {
         /*.sampler                     =*/ nullptr,
         /*.n_sampler                   =*/ 0,
         /*.ctx_other                   =*/ nullptr,
+        /*.moe_experts                 =*/ 0,
+        /*.moe_experts_add             =*/ 0,
+        /*.moe_expert_threshold        =*/ 0.0f,
+        /*.moe_expert_decay_end        =*/ 0.5f,
+        /*.moe_no_expert_decay         =*/ false,
+        /*.moe_expert_layer_start      =*/ 0.0f,
+        /*.moe_expert_layer_end        =*/ -1.0f,
     };
 
     return result;

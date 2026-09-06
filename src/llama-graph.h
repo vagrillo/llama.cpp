@@ -943,6 +943,14 @@ public:
     std::vector<ggml_tensor *> t_sampled_logits;
     std::vector<ggml_tensor *> t_candidates;
 
+    // MoE expert expansion: per-layer stats (filled by build_moe_ffn when
+    // expansion stats are enabled)
+    struct llm_moe_stat {
+        ggml_tensor * sel_count; // [1] sum of kept-expert counts over the tokens
+        int           n_tokens;  // tokens processed by this layer in this graph
+    };
+    std::map<int, llm_moe_stat> moe_expert_counts;
+
     std::vector<llm_graph_input_ptr> inputs;
     std::vector<llm_graph_fused_node> fused_nodes;
 
@@ -982,6 +990,7 @@ struct llm_graph_qkv {
 
 struct llm_graph_context {
     const llm_arch arch;
+    const llm_graph_type gtype;
 
     const llama_hparams & hparams;
     const llama_cparams & cparams;

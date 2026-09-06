@@ -109,6 +109,15 @@ The `llama.cpp` project is build on top of the [ggml](https://github.com/ggml-or
 - [Models](docs/models.md)
 - [Release process](docs/release.md)
 
+#### MoE expert expansion (this branch)
+
+- [MoE expert expansion](docs/moe-expansion.md): runtime-only routing change
+  that raises the routed-expert budget of sparse MoE models above the native
+  top-K (`--moe-experts`, `--moe-experts-add`, `--moe-expert-threshold`,
+  `--moe-expert-decay-end`, `--moe-expert-layer-start/end`; ds4-compatible
+  aliases `--q35-*`). Port of the ds4 qwen35moe feature; measured on
+  Qwen3.6-35B-A3B.
+
 ## Contributing
 
 - Contributors can open PRs

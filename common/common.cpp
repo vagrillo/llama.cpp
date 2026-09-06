@@ -1752,6 +1752,14 @@ struct llama_context_params common_context_params_to_llama(const common_params &
     cparams.type_k = params.cache_type_k;
     cparams.type_v = params.cache_type_v;
 
+    cparams.moe_experts            = params.moe_experts;
+    cparams.moe_experts_add        = params.moe_experts_add;
+    cparams.moe_expert_threshold   = params.moe_expert_threshold;
+    cparams.moe_expert_decay_end   = params.moe_expert_decay_end;
+    cparams.moe_no_expert_decay    = params.moe_no_expert_decay;
+    cparams.moe_expert_layer_start = params.moe_expert_layer_start;
+    cparams.moe_expert_layer_end   = params.moe_expert_layer_end;
+
     return cparams;
 }
 

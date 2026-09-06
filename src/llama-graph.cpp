@@ -1,4 +1,5 @@
 #include "llama-graph.h"
+#include "llama-moe-expansion.h"
 
 #include "llama-impl.h"
 #include "llama-model.h"
@@ -1335,6 +1336,8 @@ void llm_graph_result::reset() {
     t_sampled_logits.clear();
     t_candidates.clear();
 
+    moe_expert_counts.clear();
+
     params = {};
 
     inputs.clear();
@@ -1454,6 +1457,7 @@ void llm_graph_result::set_params(const llm_graph_params & params) {
 
 llm_graph_context::llm_graph_context(const llm_graph_params & params) :
     arch             (params.arch),
+    gtype            (params.gtype),
     hparams          (params.hparams),
     cparams          (params.cparams),
     ubatch           (params.ubatch),
@@ -1967,6 +1971,28 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
     const int64_t n_tokens = cur->ne[1];
     const bool weight_before_ffn = arch == LLM_ARCH_LLAMA4; // for llama4, we apply the sigmoid-ed weights before the FFN
 
+    // MoE expert expansion (docs/moe-expansion.md): raise the routed-expert
+    // budget above the model's native top-K on the requested layers, with an
+    // optional dynamic threshold cut and a linear influence decay on the extra
+    // ranks. applies to standard softmax-router MoE graphs only; MTP/draft
+    // graphs keep the native routing. with the feature off (or N == K and no
+    // threshold) the graph is exactly the stock one.
+    const bool moe_expand =
+        !cparams.warmup &&
+        cparams.moe_experts > 0 &&
+        il >= cparams.moe_layer_start && il <= cparams.moe_layer_end &&
+        gtype != LLM_GRAPH_TYPE_DECODER_MTP &&
+        gating_op == LLAMA_EXPERT_GATING_FUNC_TYPE_SOFTMAX &&
+        hparams.n_expert_groups <= 1 &&
+        probs_in == nullptr &&
+        selected_experts_in == nullptr &&
+        n_expert == hparams.n_expert &&
+        n_expert_used == (int64_t) hparams.n_expert_used() &&
+        (cparams.moe_experts != (int64_t) n_expert_used || cparams.moe_expert_threshold > 0.0f);
+
+    // N: routed-expert budget for this layer (== n_expert_used when not expanding)
+    const int64_t n_used = moe_expand ? (int64_t) cparams.moe_experts : n_expert_used;
+
     ggml_tensor * logits = nullptr;
 
     if (probs_in == nullptr) {
@@ -2054,7 +2080,7 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
     // select experts
     ggml_tensor * selected_experts = selected_experts_in;
     if (selected_experts == nullptr) {
-        selected_experts = ggml_argsort_top_k(ctx0, selection_probs, n_expert_used); // [n_expert_used, n_tokens]
+        selected_experts = ggml_argsort_top_k(ctx0, selection_probs, n_used); // [n_used, n_tokens]
         cb(selected_experts->src[0], "ffn_moe_argsort", il);
     }
     cb(selected_experts, "ffn_moe_topk", il);
@@ -2068,18 +2094,36 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
         probs = ggml_reshape_3d(ctx0, probs, 1, n_expert, n_tokens);
     }
 
-    ggml_tensor * weights = ggml_get_rows(ctx0, probs, selected_experts); // [1, n_expert_used, n_tokens]
+    ggml_tensor * weights = ggml_get_rows(ctx0, probs, selected_experts); // [1, n_used, n_tokens]
     cb(weights, "ffn_moe_weights", il);
 
 
     if (gating_op == LLAMA_EXPERT_GATING_FUNC_TYPE_SOFTMAX_WEIGHT) {
-        weights = ggml_reshape_2d(ctx0, weights, n_expert_used, n_tokens);
-        weights = ggml_soft_max(ctx0, weights); // [n_expert_used, n_tokens]
-        weights = ggml_reshape_3d(ctx0, weights, 1, n_expert_used, n_tokens);
+        weights = ggml_reshape_2d(ctx0, weights, n_used, n_tokens);
+        weights = ggml_soft_max(ctx0, weights); // [n_used, n_tokens]
+        weights = ggml_reshape_3d(ctx0, weights, 1, n_used, n_tokens);
         cb(weights, "ffn_moe_weights_softmax", il);
     }
 
-    if (norm_w) {
+    if (moe_expand) {
+        // expert-budget expansion post-pass: threshold cut + influence decay +
+        // renormalization (replaces the stock norm_w below, same sum-to-1
+        // semantics; w_scale is still applied afterwards as usual)
+        ggml_tensor * sel_count_out = nullptr;
+        weights = build_moe_expansion_weights(ctx0, weights, n_used, n_expert_used,
+                cparams.moe_expert_threshold, cparams.moe_expert_decay_end,
+                cparams.moe_no_expert_decay,
+                cparams.moe_stats_every > 0 ? &sel_count_out : nullptr);
+        cb(weights, "ffn_moe_weights_expanded", il);
+
+        if (sel_count_out) {
+            ggml_build_forward_expand(gf, sel_count_out);
+            // note: weights->ne[2] is the number of tokens this layer's FFN
+            // processes in this graph: late layers may see fewer tokens than the
+            // ubatch when the output-token optimization truncates the last layers
+            res->moe_expert_counts[il] = { sel_count_out, (int) weights->ne[2] };
+        }
+    } else if (norm_w) {
         weights = ggml_reshape_2d(ctx0, weights, n_expert_used, n_tokens);
 
         ggml_tensor * weights_sum = ggml_sum_rows(ctx0, weights); // [1, n_tokens]
@@ -2105,8 +2149,8 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
     cur = ggml_reshape_3d(ctx0, cur, n_embd, 1, n_tokens);
 
     if (weight_before_ffn) {
-        // repeat cur to [n_embd, n_expert_used, n_tokens]
-        ggml_tensor * repeated = ggml_repeat_4d(ctx0, cur, n_embd, n_expert_used, n_tokens, 1);
+        // repeat cur to [n_embd, n_used, n_tokens]
+        ggml_tensor * repeated = ggml_repeat_4d(ctx0, cur, n_embd, n_used, n_tokens, 1);
         cur = ggml_mul(ctx0, repeated, weights);
         cb(cur, "ffn_moe_weighted", il);
     }
@@ -2249,7 +2293,7 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
             GGML_ABORT("fatal error");
     }
 
-    experts = build_lora_mm_id(down_exps, cur, selected_experts, down_exps_s); // [n_embd, n_expert_used, n_tokens]
+    experts = build_lora_mm_id(down_exps, cur, selected_experts, down_exps_s); // [n_embd, n_used, n_tokens]
     cb(experts, "ffn_moe_down", il);
 
     if (down_exps_s) {
@@ -2276,7 +2320,8 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
     // Use per-layer n_expert_used to bound the graph even during warmup (avoids
     // the large-add-nodes issue for uniform arches; for Puzzle the per-layer
     // value is correct). ref: https://github.com/ggml-org/llama.cpp/pull/14753
-    const uint32_t n_expert_used_il = hparams.n_expert_used(il);
+    // with expert expansion, the selection carries n_used slots per token
+    const uint32_t n_expert_used_il = moe_expand ? (uint32_t) n_used : hparams.n_expert_used(il);
     for (uint32_t i = 0; i < n_expert_used_il; ++i) {
         cur_experts[i] = ggml_view_2d(ctx0, experts, n_embd, n_tokens, experts->nb[2], i*experts->nb[1]);
 

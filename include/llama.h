@@ -416,6 +416,17 @@ extern "C" {
         // a source/target/parent context
         // can be utilized in various ways, for example by sharing results or llama_memory between 2 contexts
         struct llama_context * ctx_other;
+
+        // MoE expert expansion (runtime-only routing change; 0 / defaults = disabled, stock routing)
+        // raises the routed-expert budget above the model's native top-K with an optional
+        // linear influence decay on the extra ranks. see docs/moe-expansion.md
+        int32_t moe_experts;              // max routed experts per token N, absolute (0 = model default; exclusive with moe_experts_add)
+        int32_t moe_experts_add;          // experts added on top of the native top-K (0 = off)
+        float   moe_expert_threshold;     // keep experts while p >= T * p(rank N/2); 0 = off, range (0, 10]
+        float   moe_expert_decay_end;     // influence factor of the last extra rank; linear 0.99..D (default 0.50), range (0, 0.99)
+        bool    moe_no_expert_decay;      // extra experts at full influence (decay disabled)
+        float   moe_expert_layer_start;   // first layer the expansion applies to; < 1: fraction of n_layer, >= 1: layer index
+        float   moe_expert_layer_end;     // last layer (inclusive); < 0: last layer, < 1: fraction of n_layer, >= 1: layer index
     };
 
     struct llama_model_tensor_override {

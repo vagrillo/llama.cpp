@@ -391,4 +391,10 @@ private:
     mutable int32_t n_eval   = 0; // number of eval calls
 
     mutable int32_t n_reused = 0; // number of times the previous graph was reused
+
+    // MoE expert expansion observability (experts/token per layer)
+    std::vector<double>   moe_stats_acc; // per-trunk-layer sum of selected experts
+    std::vector<uint64_t> moe_stats_tok; // per-trunk-layer tokens observed
+    uint64_t moe_stats_tokens  = 0;      // tokens observed since the last report
+    uint64_t moe_stats_total   = 0;    // total tokens observed
 };
