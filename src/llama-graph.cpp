@@ -1974,17 +1974,30 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
     // MoE expert expansion (docs/moe-expansion.md): raise the routed-expert
     // budget above the model's native top-K on the requested layers, with an
     // optional dynamic threshold cut and a linear influence decay on the extra
-    // ranks. applies to standard softmax-router MoE graphs only; MTP/draft
-    // graphs keep the native routing. with the feature off (or N == K and no
-    // threshold) the graph is exactly the stock one.
+    // ranks.
+    //
+    // universal across router families: the post-pass only needs positive,
+    // rank-orderable scores, so every router that produces them is supported -
+    // softmax (qwen*, glm4-moe, lfm2moe, olmoe, mixtral, ...), sigmoid with
+    // weight normalization (glm-dsa/GLM-5.x, ...), softmax-of-selected-scores
+    // (openai-moe/gpt-oss) and sqrt-softplus (deepseek4); precomputed router
+    // logits (probs_in, e.g. gemma4) are fine too since the gating softmax
+    // normalizes them. excluded: MTP/draft graphs, grouped expert routing,
+    // custom expert selections and models that apply the weights before the
+    // FFN without normalization (llama4) - those keep the native routing.
+    // with the feature off (or N == K and no threshold) the graph is exactly
+    // the stock one.
     const bool moe_expand =
         !cparams.warmup &&
         cparams.moe_experts > 0 &&
         il >= cparams.moe_layer_start && il <= cparams.moe_layer_end &&
         gtype != LLM_GRAPH_TYPE_DECODER_MTP &&
-        gating_op == LLAMA_EXPERT_GATING_FUNC_TYPE_SOFTMAX &&
+        (gating_op == LLAMA_EXPERT_GATING_FUNC_TYPE_SOFTMAX ||
+         gating_op == LLAMA_EXPERT_GATING_FUNC_TYPE_SIGMOID ||
+         gating_op == LLAMA_EXPERT_GATING_FUNC_TYPE_SOFTMAX_WEIGHT ||
+         gating_op == LLAMA_EXPERT_GATING_FUNC_TYPE_SQRT_SOFTPLUS) &&
+        !weight_before_ffn &&
         hparams.n_expert_groups <= 1 &&
-        probs_in == nullptr &&
         selected_experts_in == nullptr &&
         n_expert == hparams.n_expert &&
         n_expert_used == (int64_t) hparams.n_expert_used() &&

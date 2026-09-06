@@ -13,6 +13,11 @@ of DwarfStar (ds4, branch `qwen35moe-support`), described in
 No model-file changes, no GGUF changes, no kernel changes: with the feature off,
 the engine behaves bit-identically to stock.
 
+**Universal across MoE families**: it works on any architecture routed through
+the standard MoE path — Qwen MoE, DeepSeek (V4), GLM 4/5.x, LiquidAI LFM2-MoE,
+Gemma 4, gpt-oss, OLMOE, Mixtral, Jamba, MiniMax, Kimi, Nemotron-H and many
+more (see the coverage table below).
+
 Reference results on Qwen3.6-35B-A3B (ds4/Metal, M4 Pro, MMLU-Pro 714 questions,
 greedy): native top-8 vs expansion N=20 T=0.8 decay 0.99→0.50 — accuracy 84.0%
 vs 84.5% (unchanged), mean reasoning tokens −8.5%, latency −10.9%, with ~15.5
@@ -79,26 +84,49 @@ a mean around 15-16; exactly 20.0 with `T=0`; exactly `N/4` with `T=10`.
 
 ## Implementation notes (llama.cpp specifics)
 
+### Model coverage
+
+The feature lives in the shared `llm_graph_context::build_moe_ffn` router, so
+it applies to every MoE architecture that uses the standard routing path —
+regardless of the architecture name. Supported router families:
+
+| router family | models (examples) | notes |
+|---|---|---|
+| softmax | qwen2/3/3.5 MoE, qwen3vlmoe, qwen4exp, glm4-moe, lfm2moe (LiquidAI), olmoe, mixtral, smallthinker, jamba, minimax, nemotron-h, kimi, bailing, cohere2moe, ernie, llada-moe, hunyuan, grok, rnd1, mimo2, mellum, laguna, dots3note, dflash, ... | reference family (Qwen3.6-35B-A3B) |
+| softmax + selection bias | deepseek2, deepseek32, deepseek4 (V4), glm-dsa (GLM 5.x) | bias affects rank order only; the cut is self-consistent with the gathered weights |
+| sigmoid + weight norm | glm-dsa (GLM 5.x default), ... | scores renormalized over the kept set, same as stock |
+| softmax-of-selected-scores | openai-moe (gpt-oss) | softmax over the selected set runs before the post-pass |
+| sqrt-softplus | deepseek4 (V4) | positive unnormalized scores; the post-pass renormalizes (spec §2) |
+| precomputed router logits | gemma4 | `probs_in` is fine: the gating softmax normalizes it |
+
+Not supported (native routing kept, no error):
+
+- grouped expert routing (`n_expert_groups > 1`, DeepSeek V3-style group
+  top-k) — requesting the flags on such a model fails fast at context creation
+- models that apply the expert weights **before** the FFN without
+  normalization (llama4) — the renormalization would change stock semantics
+- custom expert selections (`selected_experts_in`) and MTP/draft graphs
+
+### Mechanics
+
 - The selection/cut/decay/renormalization is implemented as pure graph ops on
   the rank-ordered router weights in `llm_graph_context::build_moe_ffn`
   (`src/llama-moe-expansion.h`), so it runs identically on every backend
   (CPU, Metal, CUDA, Vulkan, ...). Strategy: **fixed-N mask** — the graph
-  always carries N selection slots per token and dropped ranks carry zero
-  weight, so the stock expert kernels need no changes. Consequence: compute
-  scales with N (not with the adaptive count), i.e. speed ~N/K of native.
-  `T > 1` pruning therefore saves quality-affecting compute only on engines
-  with true variable-count execution (ds4 does); here it is a routing change,
-  not a speedup.
-- Applies only to softmax-router MoE graphs; MTP/draft graphs keep the native
-  routing; grouped expert routing (n_expert_groups > 1) and custom selections
-  are excluded.
+  always carries N slots per token and dropped ranks carry zero weight, so the
+  stock expert kernels need no changes. Consequence: compute scales with N (not
+  with the adaptive count), i.e. speed ~N/K of native. `T > 1` pruning
+  therefore saves quality-affecting compute only on engines with true
+  variable-count execution (ds4 does); here it is a routing change, not a
+  speedup.
+- With expansion active the kept weights are always renormalized to sum 1
+  (spec §2), replacing the stock normalization when the model has one;
+  `w_scale` (routed scaling) is still applied afterwards as usual.
 - Warmup batches keep the native routing (the warmup graph already exercises
   all experts, and it sizes the compute buffers: N ≤ expert_count fits).
 - Expert-id tie-breaking on equal router probabilities follows ggml's argsort
-  (not ds4's lowest-id scan); ties in float softmax probabilities are a
-  negligible edge case.
-- DeepSeek-style expert-selection bias affects the rank order, as in stock;
-  the threshold is self-consistent with the gathered (unbiased) weights.
+  (not ds4's lowest-id scan); ties in float probabilities are a negligible
+  edge case.
 
 ## Examples
 
