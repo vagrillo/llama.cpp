@@ -1493,6 +1493,11 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
             moe_stats_tok.resize(model.hparams.n_layer(), 0);
         }
 
+        // the server runs more than one graph topology per request (e.g. the
+        // MTP/nextn head passes): in the graphs where an expanded layer's count
+        // tensor is not computed, the readback fails the bounds check below and
+        // that ubatch is simply not counted, instead of polluting the averages
+        uint32_t n_valid = 0;
         for (const auto & [il, st] : res->moe_expert_counts) {
             float cnt = 0.0f;
             ggml_backend_tensor_get(st.sel_count, &cnt, 0, sizeof(cnt));
@@ -1503,7 +1508,13 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
             if (il >= 0 && il < (int) moe_stats_acc.size() && cnt >= min_cnt && cnt <= max_cnt) {
                 moe_stats_acc[il] += cnt;
                 moe_stats_tok[il] += st.n_tokens;
+                n_valid++;
             }
+        }
+
+        if (n_valid == 0) {
+            ret = GGML_STATUS_SUCCESS;
+            return res;
         }
 
         moe_stats_tokens += ubatch.n_tokens;
@@ -1526,7 +1537,12 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                 line += buf;
             }
 
-            snprintf(buf, sizeof(buf), " | mean %.1f\n", nl > 0 ? sum / nl : 0.0);
+            if (nl == 0) {
+                moe_stats_tokens = 0;
+                ret = GGML_STATUS_SUCCESS;
+                return res;
+            }
+            snprintf(buf, sizeof(buf), " | mean %.1f\n", sum / nl);
             line += buf;
             // stderr, see the startup banner comment above
             fputs(line.c_str(), stderr);
