@@ -28,8 +28,10 @@ experts/token instead of 8. Gains are model-dependent: always measure per model.
 Full paired benchmark, greedy, 198/198 questions, Qwen3.6-35B-A3B (UD-Q6_K_XL):
 config N=20 / T=0.8 / layers 29–39 / decay 0.99→0.50 vs native top-8.
 Complete report: [benchmark/GPQA/report_gpqa_moe.md](../benchmark/GPQA/report_gpqa_moe.md)
-([HTML](../benchmark/GPQA/report_gpqa_moe.html)) — raw predictions, reviews and
-methodology are committed under [benchmark/GPQA/](../benchmark/GPQA/).
+([HTML rendered](https://htmlpreview.github.io/?https://github.com/vagrillo/llama.cpp/blob/moe-expansion/benchmark/GPQA/report_gpqa_moe.html),
+[source](../benchmark/GPQA/report_gpqa_moe.html) — GitHub does not render HTML;
+download and open locally) — raw predictions, reviews and methodology are
+committed under [benchmark/GPQA/](../benchmark/GPQA/).
 
 | metric | expansion | native | Δ |
 |---|---|---|---|
@@ -190,7 +192,7 @@ LLAMA_MOE_EXPERT_STATS_EVERY=64 llama-cli -m model.gguf --moe-experts 20 ...
   methodology and divergent-question list:
   [benchmark/GPQA/](../benchmark/GPQA/) ·
   [report (md)](../benchmark/GPQA/report_gpqa_moe.md) ·
-  [report (html)](../benchmark/GPQA/report_gpqa_moe.html).
+  [report (html, rendered)](https://htmlpreview.github.io/?https://github.com/vagrillo/llama.cpp/blob/moe-expansion/benchmark/GPQA/report_gpqa_moe.html).
 
 When benchmarking quality, keep the paired protocol (same questions, greedy,
 one variable at a time) — see the ds4 instruction document for the full
