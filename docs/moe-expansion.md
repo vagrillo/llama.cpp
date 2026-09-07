@@ -23,6 +23,28 @@ greedy): native top-8 vs expansion N=20 T=0.8 decay 0.99→0.50 — accuracy 84.
 vs 84.5% (unchanged), mean reasoning tokens −8.5%, latency −10.9%, with ~15.5
 experts/token instead of 8. Gains are model-dependent: always measure per model.
 
+## Measured on GPQA-Diamond (this branch)
+
+Full paired benchmark, greedy, 198/198 questions, Qwen3.6-35B-A3B (UD-Q6_K_XL):
+config N=20 / T=0.8 / layers 29–39 / decay 0.99→0.50 vs native top-8.
+Complete report: [benchmark/GPQA/report_gpqa_moe.md](benchmark/GPQA/report_gpqa_moe.md)
+([HTML](benchmark/GPQA/report_gpqa_moe.html)) — raw predictions, reviews and
+methodology are committed under [benchmark/GPQA/](benchmark/GPQA/).
+
+| metric | expansion | native | Δ |
+|---|---|---|---|
+| accuracy | **85.35%** (169/198) | 83.33% (165/198) | **+2.02 pts** |
+| paired net | **+4** (13 wins / 9 losses / 156 ties) | | |
+| tokens — mean | 7,392 | 8,156 | **−9.4%** |
+| tokens — median | 5,180 | 5,494 | **−5.7%** |
+| truncated responses | 0 | 0 | — |
+
+Paired net is positive on all three subjects (Physics +2, Chemistry +1,
+Biology +1), with expansion mean **and** median tokens lower everywhere
+(Biology −23.6%). On GPQA the "succinct convergence" shows up on both axes:
+slightly better accuracy on fewer tokens. Note: the two runs executed on
+different GPUs, so decoding speed is intentionally not compared.
+
 ## The three knobs
 
 1. **Max experts N** (`--moe-experts N`, or `--moe-experts-add N` to add on top
@@ -162,6 +184,13 @@ LLAMA_MOE_EXPERT_STATS_EVERY=64 llama-cli -m model.gguf --moe-experts 20 ...
   equivalent; deterministic across runs; layer range gates per layer; invalid
   parameters exit non-zero.
 - `test-arg-parser`, `test-sampling`, `test-chat-template` pass unmodified.
+- **Quality benchmark**: full paired GPQA-Diamond run (198/198 questions,
+  greedy) — accuracy +2.02 pts, paired net +4, tokens −9.4% mean / −5.7%
+  median for the expansion; net positive on all three subjects. Full data,
+  methodology and divergent-question list:
+  [benchmark/GPQA/](benchmark/GPQA/) ·
+  [report (md)](benchmark/GPQA/report_gpqa_moe.md) ·
+  [report (html)](benchmark/GPQA/report_gpqa_moe.html).
 
 When benchmarking quality, keep the paired protocol (same questions, greedy,
 one variable at a time) — see the ds4 instruction document for the full
