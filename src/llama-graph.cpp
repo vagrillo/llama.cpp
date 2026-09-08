@@ -2006,6 +2006,13 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
     // N: routed-expert budget for this layer (== n_expert_used when not expanding)
     const int64_t n_used = moe_expand ? (int64_t) cparams.moe_experts : n_expert_used;
 
+    // weight renormalization after cut+decay: "auto" follows the model's stock
+    // normalization (renorm on for softmax routers with norm_w, off for raw-score
+    // routers like DeepSeek-V4's sqrt-softplus with expert_weights_norm=false)
+    const bool moe_renorm =
+        cparams.moe_expert_renorm == 1 ||                     // always
+        (cparams.moe_expert_renorm == 0 && norm_w);           // auto -> follow stock
+
     ggml_tensor * logits = nullptr;
 
     if (probs_in == nullptr) {
@@ -2125,7 +2132,7 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
         ggml_tensor * sel_count_out = nullptr;
         weights = build_moe_expansion_weights(ctx0, weights, n_used, n_expert_used,
                 cparams.moe_expert_threshold, cparams.moe_expert_decay_end,
-                cparams.moe_no_expert_decay,
+                cparams.moe_no_expert_decay, moe_renorm,
                 cparams.moe_stats_every > 0 ? &sel_count_out : nullptr);
         cb(weights, "ffn_moe_weights_expanded", il);
 

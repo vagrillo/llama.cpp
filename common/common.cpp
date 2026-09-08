@@ -1759,6 +1759,7 @@ struct llama_context_params common_context_params_to_llama(const common_params &
     cparams.moe_no_expert_decay    = params.moe_no_expert_decay;
     cparams.moe_expert_layer_start = params.moe_expert_layer_start;
     cparams.moe_expert_layer_end   = params.moe_expert_layer_end;
+    cparams.moe_expert_renorm      = params.moe_expert_renorm;
 
     return cparams;
 }

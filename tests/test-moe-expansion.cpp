@@ -24,7 +24,8 @@ struct case_result {
 };
 
 static case_result run_expansion(const std::vector<float> & probs, int64_t n_used, int64_t k_native,
-                                 float threshold, float decay_end, bool no_decay, int64_t n_tokens) {
+                                 float threshold, float decay_end, bool no_decay, int64_t n_tokens,
+                                 bool renormalize = true) {
     case_result res;
 
     ggml_init_params ip = {
@@ -39,7 +40,7 @@ static case_result run_expansion(const std::vector<float> & probs, int64_t n_use
 
     ggml_tensor * sel_count = nullptr;
     ggml_tensor * out = build_moe_expansion_weights(ctx, weights, n_used, k_native,
-            threshold, decay_end, no_decay, &sel_count);
+            threshold, decay_end, no_decay, renormalize, &sel_count);
 
     ggml_cgraph * gf = ggml_new_graph(ctx);
     ggml_build_forward_expand(gf, out);
@@ -71,8 +72,9 @@ static case_result run_expansion(const std::vector<float> & probs, int64_t n_use
 
 // one token per call, so the summed sel_count is the per-token count
 static case_result run_expansion_1t(const std::vector<float> & probs, int64_t n_used, int64_t k_native,
-                                    float threshold, float decay_end, bool no_decay) {
-    case_result r = run_expansion(probs, n_used, k_native, threshold, decay_end, no_decay, 1);
+                                    float threshold, float decay_end, bool no_decay, bool renormalize = true) {
+    // NB: run_expansion's signature after no_decay is (n_tokens, renormalize)
+    case_result r = run_expansion(probs, n_used, k_native, threshold, decay_end, no_decay, 1, renormalize);
     return r;
 }
 
@@ -291,6 +293,51 @@ int main() {
         expect(r.counts[0] == (float) ref.first, "T=2, N=K=8: count matches reference");
         expect(ref.first >= 2 && ref.first <= 8, "T=2, N=K=8: c in [F, N]");
         expect(sum1(r.w, 8, ref.first, 1e-5f), "T=2, N=K=8: kept weights sum to 1");
+    }
+
+    // 8b. renormalize=false (never): kept weights keep the raw decayed score scale
+    //     (sum != 1 in general; ratio structure identica al caso no-renorm della reference)
+    {
+        auto p = power_law(20, 0.25f);
+        auto r = run_expansion_1t(p, 20, 8, 0.0f, D05, false, false);
+        // senza renorm: w_j = p_j (j < 8 nativi) e f_j * p_j per j >= 8, nessuna divisione
+        bool ok = fabsf(r.w[0] - p[0]) < 1e-6f;                       // nativi: peso grezzo
+        float prev_factor = 1.1f;
+        for (int j = 8; j < 20 && ok; j++) {
+            const float t = (float)(j - 8) / (float)(20 - 8 - 1);
+            const float factor = 0.99f + (D05 - 0.99f) * t;
+            const float want = p[j] * factor;
+            // il decay progressivo deve essere mantenuto anche senza renormalizzazione:
+            // ogni aggiunto pesa factor * p_j, con factor strettamente decrescente
+            ok = fabsf(r.w[j] - want) < 1e-6f && factor < prev_factor;
+            prev_factor = factor;
+        }
+        const float sum = [&]{ float s = 0; for (int j = 0; j < 20; j++) s += r.w[j]; return s; }();
+        expect(ok && fabsf(sum - 1.0f) > 1e-3f,
+               "renormalize=false: raw decayed score scale kept (sum != 1), progressive decay preserved");
+        fprintf(stderr, "DBG 8b expect done\n");
+    }
+
+    // 8c. never + threshold: cut applicato, scala grezza sulle kept
+    {
+        auto p = power_law(20, 0.25f);
+        auto r = run_expansion_1t(p, 20, 8, 0.8f, D05, false, false);
+        auto ref = ref_expansion(p.data(), 20, 8, 0.8f, D05, false);
+        // reference senza la renorm finale: ricalcola manualmente
+        float sum = 0;
+        for (int j = 0; j < ref.first; j++) {
+            const float t = ref.first > 8 ? (float)(j - 8) / (float)(20 - 8 - 1) : 0.5f;
+            float w = p[j] * (j >= 8 ? (0.99f + (D05 - 0.99f) * t) : 1.0f);
+            sum += w;
+        }
+        bool ok = true;
+        for (int j = 0; j < 20 && ok; j++) {
+            const float t = ref.first > 8 ? (float)(j - 8) / (float)(20 - 8 - 1) : 0.5f;
+            float want = (j < ref.first) ? p[j] * (j >= 8 ? (0.99f + (D05 - 0.99f) * t) : 1.0f) : 0.0f;
+            ok = fabsf(r.w[j] - want) < 1e-5f;
+        }
+        expect(ok && fabsf(sum - 1.0f) > 1e-3f,
+               "never + threshold: raw scale, sum != 1 (no renormalization)");
     }
 
     // 9. random-ish sweep: post-pass == reference across many configurations

@@ -1817,6 +1817,16 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
         }
     ).set_env("LLAMA_ARG_MOE_NO_EXPERT_DECAY"));
     add_opt(common_arg(
+        {"--moe-expert-renorm"}, "MODE",
+        "MoE expert expansion: renormalization of the kept expert weights after cut+decay: 'auto' follows the model's stock normalization (renorm only if expert_weights_norm=true), 'always' forces sum-to-1, 'never' keeps the raw decayed score scale (raw-score routers such as DeepSeek-V4 sqrt-softplus + bias) (default: auto)",
+        [](common_params & params, const std::string & value) {
+            if (value == "auto")       params.moe_expert_renorm = 0;
+            else if (value == "always") params.moe_expert_renorm = 1;
+            else if (value == "never")  params.moe_expert_renorm = 2;
+            else throw std::invalid_argument("--moe-expert-renorm must be auto, always or never");
+        }
+    ).set_env("LLAMA_ARG_MOE_EXPERT_RENORM"));
+    add_opt(common_arg(
         {"--moe-expert-layer-start"}, "I",
         "MoE expert expansion: first transformer layer it applies to; fraction of n_layer if < 1 (e.g. 0.5 = second half), absolute index if >= 1 (default: 0 = all layers)",
         [](common_params & params, const std::string & value) {

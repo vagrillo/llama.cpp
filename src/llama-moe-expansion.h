@@ -28,10 +28,16 @@
 //   k_native  K: the model's native top-k (decay ramp reference)
 //   threshold T: keep ranks while weight >= T * weight(rank N/2); 0 = keep N
 //   decay_end D: influence of the last extra rank; linear 0.99..D, off if no_decay
+//   renormalize: true -> kept weights renormalized to sum 1 (softmax-style routers,
+//                e.g. Qwen; semantically a no-op vs the stock renormalization)
+//                false -> kept weights keep their raw decayed score scale and the
+//                dropped mass is discarded: the correct semantics for routers whose
+//                stock scores do not sum to 1 (sqrt-softplus + bias with
+//                expert_weights_norm=false, e.g. DeepSeek-V4 conversions)
 //   sel_count out: [1] sum of per-token kept-expert counts (optional)
 //
-// returns the post-processed weights, [1, n_used, n_tokens], summing to 1
-// per token.
+// returns the post-processed weights, [1, n_used, n_tokens]; sums to 1 per token
+// when renormalize is true.
 inline ggml_tensor * build_moe_expansion_weights(
         ggml_context * ctx0,
         ggml_tensor  * weights,
@@ -40,6 +46,7 @@ inline ggml_tensor * build_moe_expansion_weights(
         const float    threshold,
         const float    decay_end,
         const bool     no_decay,
+        const bool     renormalize,
         ggml_tensor  ** sel_count) {
     const int64_t n_tokens = weights->ne[2];
 
@@ -116,11 +123,16 @@ inline ggml_tensor * build_moe_expansion_weights(
         w = ggml_mul(ctx0, w, ggml_repeat(ctx0, fac, weights));
     }
 
-    // renormalize the kept weights to sum 1 (per token; sum > 0 guaranteed:
-    // at least F >= 1 ranks are kept and softmax weights are positive)
-    ggml_tensor * wsum = ggml_sum_rows(ctx0, ggml_reshape_2d(ctx0, w, n_used, n_tokens)); // [1, n_tokens]
-    wsum = ggml_clamp(ctx0, wsum, 6.103515625e-5f, INFINITY);
-    w = ggml_div(ctx0, w, ggml_repeat(ctx0, ggml_reshape_3d(ctx0, wsum, 1, 1, n_tokens), w));
+    // renormalize the kept weights to sum 1 per token (renormalize=true, softmax-style
+    // routers). with renormalize=false the kept weights keep their raw decayed score
+    // scale - renormalizing would change the routed-branch output magnitude vs the
+    // stock behavior of the same model with the feature off. (sum > 0 guaranteed when
+    // renormalizing: at least F >= 1 ranks are kept and the scores are positive)
+    if (renormalize) {
+        ggml_tensor * wsum = ggml_sum_rows(ctx0, ggml_reshape_2d(ctx0, w, n_used, n_tokens)); // [1, n_tokens]
+        wsum = ggml_clamp(ctx0, wsum, 6.103515625e-5f, INFINITY);
+        w = ggml_div(ctx0, w, ggml_repeat(ctx0, ggml_reshape_3d(ctx0, wsum, 1, 1, n_tokens), w));
+    }
 
     return w;
 }

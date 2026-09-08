@@ -477,6 +477,7 @@ struct common_params {
     bool    moe_no_expert_decay    = false; // extra experts at full influence (disable the decay)
     float   moe_expert_layer_start =  0.0f; // first layer with expansion; < 1: fraction of n_layer, >= 1: layer index
     float   moe_expert_layer_end   = -1.0f; // last layer (inclusive); < 0: last layer, < 1: fraction of n_layer, >= 1: layer index
+    int32_t moe_expert_renorm      =  0;    // kept-weight renormalization: 0 auto (follow stock norm), 1 always, 2 never
 
     // offload params
     std::vector<ggml_backend_dev_t> devices; // devices to use for offloading

@@ -418,6 +418,16 @@ extern "C" {
         struct llama_context * ctx_other;
 
         // MoE expert expansion (runtime-only routing change; 0 / defaults = disabled, stock routing)
+        // renormalization of the kept expert weights after the cut+decay:
+        //   auto (0)   = follow the model's stock normalization (renorm iff the stock
+        //                router weights are normalized, i.e. expert_weights_norm=true)
+        //   always (1) = always renormalize kept weights to sum 1 (softmax-style semantics)
+        //   never (2)  = keep the raw decayed score scale, dropped mass discarded
+        //                (correct scale semantics for raw-score routers such as
+        //                DeepSeek-V4's sqrt-softplus + bias with expert_weights_norm=false)
+        #define LLAMA_MOE_EXPERT_RENORM_AUTO   0
+        #define LLAMA_MOE_EXPERT_RENORM_ALWAYS 1
+        #define LLAMA_MOE_EXPERT_RENORM_NEVER  2
         // raises the routed-expert budget above the model's native top-K with an optional
         // linear influence decay on the extra ranks. see docs/moe-expansion.md
         int32_t moe_experts;              // max routed experts per token N, absolute (0 = model default; exclusive with moe_experts_add)
@@ -427,6 +437,7 @@ extern "C" {
         bool    moe_no_expert_decay;      // extra experts at full influence (decay disabled)
         float   moe_expert_layer_start;   // first layer the expansion applies to; < 1: fraction of n_layer, >= 1: layer index
         float   moe_expert_layer_end;     // last layer (inclusive); < 0: last layer, < 1: fraction of n_layer, >= 1: layer index
+        int     moe_expert_renorm;        // kept-weight renormalization mode (LLAMA_MOE_EXPERT_RENORM_*)
     };
 
     struct llama_model_tensor_override {

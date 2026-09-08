@@ -78,6 +78,7 @@ All flags off → bit-identical to stock (hard requirement, verified below).
 | `--moe-expert-threshold T` | `--q35-expert-threshold` | 0 (off) | adaptive count: keep while p ≥ T × p(rank N/2); T ∈ (0, 10] |
 | `--moe-expert-decay-end D` | — | 0.50 | influence of the last extra rank; linear 0.99..D; D ∈ (0, 0.99) |
 | `--moe-no-expert-decay` | `--q35-no-expert-decay` | off | extra experts at full influence |
+| `--moe-expert-renorm MODE` | — | `auto` | kept-weight renormalization after cut+decay: `auto` follows the model's stock normalization (renorm iff `expert_weights_norm=true`), `always` forces sum-to-1, `never` keeps the raw decayed score scale |
 | `--moe-expert-layer-start I` | — | 0 | first layer the expansion applies to; `< 1`: fraction of n_layer, `≥ 1`: layer index |
 | `--moe-expert-layer-end I` | — | −1 | last layer (inclusive); `< 0`: last layer, `< 1`: fraction, `≥ 1`: index |
 
@@ -143,9 +144,19 @@ Not supported (native routing kept, no error):
   therefore saves quality-affecting compute only on engines with true
   variable-count execution (ds4 does); here it is a routing change, not a
   speedup.
-- With expansion active the kept weights are always renormalized to sum 1
-  (spec §2), replacing the stock normalization when the model has one;
-  `w_scale` (routed scaling) is still applied afterwards as usual.
+- Weight renormalization is mode-controlled (`--moe-expert-renorm`, default
+  `auto`): for softmax routers with stock normalization (Qwen3.6: norm + routed
+  scale) the kept weights are renormalized to sum 1 as in stock; for raw-score
+  routers (DeepSeek-V4's sqrt-softplus + bias with `expert_weights_norm=false`)
+  `auto` does NOT renormalize — the kept weights keep their decayed score scale
+  and the dropped mass is discarded, exactly like the ds4 DeepSeek-V4 path.
+  Forcing `never`/`always` overrides this.
+  <br><br>Measured on GPQA-Diamond (DeepSeek-V4-Flash-0731, IQ2_M, N=12/T=0.8/L30-42):
+  the expansion regressed (accuracy −2.02 pts, paired net −4) in a run executed
+  with the pre-`auto` build, which forced renormalization. The renormalization
+  mode exists precisely to test the weight-sum semantics hypothesis on raw-score
+  routers: a rerun with `--moe-expert-renorm never` (or `auto`, if the GGUF does
+  not set `expert_weights_norm=true`) isolates that variable.
 - Warmup batches keep the native routing (the warmup graph already exercises
   all experts, and it sizes the compute buffers: N ≤ expert_count fits).
 - Expert-id tie-breaking on equal router probabilities follows ggml's argsort
