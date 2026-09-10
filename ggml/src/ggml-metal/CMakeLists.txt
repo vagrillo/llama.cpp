@@ -150,6 +150,23 @@ else()
         set(XC_FLAGS -O3)
     endif()
 
+    # fail loudly when the Metal toolchain is missing: proceeding would produce
+    # a binary without default.metallib that reports "can't find kernel" errors
+    # and crashes at the first GPU compute at runtime.
+    execute_process(COMMAND xcrun -sdk ${METAL_SDK} -f metal
+                    RESULT_VARIABLE METAL_COMPILER_RESULT
+                    OUTPUT_QUIET ERROR_QUIET)
+    if (NOT METAL_COMPILER_RESULT EQUAL 0)
+        message(FATAL_ERROR
+            "Metal toolchain not found (xcrun -sdk ${METAL_SDK} -f metal failed).\n"
+            "Building with GGML_METAL=ON without it produces a binary without Metal kernels:\n"
+            "at runtime it reports 'can't find kernel' errors and crashes on GPU compute.\n"
+            "Fix (any of):\n"
+            "  - install the toolchain: xcode-select --install (or full Xcode)\n"
+            "  - configure with -DGGML_METAL=OFF for a CPU-only build\n"
+            "  - configure with -DGGML_METAL_EMBED=ON to compile kernels on the target at runtime")
+    endif()
+
     execute_process(COMMAND xcrun -sdk ${METAL_SDK} --show-sdk-version OUTPUT_VARIABLE METAL_SDK_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
     if (METAL_SDK_VERSION VERSION_GREATER_EQUAL 26.0)
         set(GGML_METAL_HAS_TENSOR_LIB ON)

@@ -184,6 +184,47 @@ llama-cli -m model.gguf --moe-experts 8 --moe-expert-threshold 2
 LLAMA_MOE_EXPERT_STATS_EVERY=64 llama-cli -m model.gguf --moe-experts 20 ...
 ```
 
+## Building and running on macOS (Metal)
+
+All expansion operators (FILL, ARANGE, STEP, CLAMP, REPEAT, SUM_ROWS,
+ARGSORT, GET_ROWS, broadcast arithmetic) have standard Metal kernels in this
+repository — no extra kernels are needed for the expansion on Apple Silicon.
+
+The classic macOS build failure is a **missing Metal toolchain at build
+time**: CMake used to skip the `default.metallib` generation with only a
+warning, producing a binary that reports *"can't find kernel"* errors and
+often crashes at the first GPU compute. The build now **fails with a clear
+error** when `GGML_METAL=ON` and `xcrun metal` is not available.
+
+Fix and verification:
+
+```bash
+xcode-select --install                       # Metal toolchain comes with Xcode/CLT
+xcrun -f metal && xcrun -f metallib          # both must print a path
+
+rm -rf build
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DGGML_METAL_EMBED=ON
+cmake --build build --config Release -j$(sysctl -n hw.ncpu)
+```
+
+`-DGGML_METAL_EMBED=ON` compiles the kernels into the binary itself: no
+runtime lookup of `default.metallib`, immune to "running from another
+directory" issues. Recommended for shared builds.
+
+Alternatives:
+
+- `-DGGML_METAL=OFF` — CPU-only build; useful to isolate whether a problem is
+  the Metal build or the code (if CPU runs and Metal crashes, it is the build).
+- If a segfault happens anyway with a working Metal build, capture a backtrace:
+
+```bash
+lldb -- ./build/bin/llama-server -m <model> --moe-experts 12 --moe-expert-threshold 0.8 ...
+(lldb) run
+(lldb) bt
+```
+
+and open an issue with the backtrace plus the `moe:` startup banner lines.
+
 ## Verification performed on this branch
 
 - `tests/test-moe-expansion.cpp` (22 checks): the graph post-pass matches a
