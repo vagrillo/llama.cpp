@@ -12,10 +12,14 @@ on:
         required: true
         type: boolean
         default: true
+  push:
+    tags: [ 'moe-*' ]
+
+# Release tag: on a moe-* tag push, the tag itself; on manual dispatch from the
+# branch, moe-expansion-b<commit-count>-<short-hash> (same convention as upstream)
 
 env:
   GH_TOKEN: ${{ github.token }}
-  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
   CMAKE_ARGS: "-DLLAMA_BUILD_EXAMPLES=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_TOOLS=ON -DLLAMA_BUILD_SERVER=ON -DGGML_RPC=ON"
 
 concurrency:
@@ -61,9 +65,15 @@ jobs:
             ${{ env.CMAKE_ARGS }}
           cmake --build build --config Release -j $(sysctl -n hw.logicalcpu)
 
-      - name: Determine tag name
+      - name: Resolve release tag
         id: tag
-        uses: ./.github/actions/get-tag-name
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "name=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=moe-expansion-b$(git rev-list --count HEAD)-$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Pack artifacts
         run: |
@@ -121,9 +131,15 @@ jobs:
             ${{ env.CMAKE_ARGS }}
           cmake --build build --config Release -j $(nproc)
 
-      - name: Determine tag name
+      - name: Resolve release tag
         id: tag
-        uses: ./.github/actions/get-tag-name
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "name=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=moe-expansion-b$(git rev-list --count HEAD)-$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Pack artifacts
         run: |
@@ -276,7 +292,7 @@ jobs:
           key: release-moe-windows-x64-cuda-${{ matrix.cuda }}
 
   release-moe:
-    if: ${{ github.event.inputs.create_release == 'true' }}
+    if: ${{ github.event_name == 'push' || github.event.inputs.create_release == 'true' }}
     needs:
       - ui-build
       - macos-arm64
@@ -292,9 +308,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Determine tag name
+      - name: Resolve release tag
         id: tag
-        uses: ./.github/actions/get-tag-name
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "name=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=moe-expansion-b$(git rev-list --count HEAD)-$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Download artifacts
         uses: actions/download-artifact@v7
