@@ -3826,6 +3826,7 @@ llama_context_params llama_context_default_params() {
         /*.moe_no_expert_decay         =*/ false,
         /*.moe_expert_layer_start      =*/ 0.0f,
         /*.moe_expert_layer_end        =*/ -1.0f,
+        /*.moe_expert_renorm           =*/ LLAMA_MOE_EXPERT_RENORM_AUTO,
     };
 
     return result;

@@ -396,5 +396,4 @@ private:
     std::vector<double>   moe_stats_acc; // per-trunk-layer sum of selected experts
     std::vector<uint64_t> moe_stats_tok; // per-trunk-layer tokens observed
     uint64_t moe_stats_tokens  = 0;      // tokens observed since the last report
-    uint64_t moe_stats_total   = 0;    // total tokens observed
 };
