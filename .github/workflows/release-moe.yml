@@ -1,0 +1,363 @@
+name: Release (moe-expansion)
+
+# Trimmed release pipeline for the moe-expansion fork: the "simple" subset of
+# the upstream ggml-org/llama.cpp release matrix — x64 CPU (Ubuntu/Windows),
+# Windows x64 CUDA 12/13, and macOS arm64 (Metal). Manual trigger only.
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create new release'
+        required: true
+        type: boolean
+        default: true
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+  CMAKE_ARGS: "-DLLAMA_BUILD_EXAMPLES=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_TOOLS=ON -DLLAMA_BUILD_SERVER=ON -DGGML_RPC=ON"
+
+concurrency:
+  group: release-moe
+
+jobs:
+  ui-build:
+    uses: ./.github/workflows/ui-build.yml
+
+  macos-arm64:
+    name: macos-arm64 (Metal)
+    needs: [ui-build]
+    runs-on: macos-26
+    permissions:
+      actions: write
+    steps:
+      - name: Clone
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Download UI build
+        uses: actions/download-artifact@v7
+        with:
+          name: llama-ui.zip
+          path: tools/ui/dist
+
+      - name: ccache
+        uses: ggml-org/ccache-action@v1.2.24
+        with:
+          key: release-moe-macos-arm64
+
+      - name: Build
+        run: |
+          sysctl -a
+          cmake -B build \
+            -DGGML_METAL_EMBED_LIBRARY=ON \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=13.3 \
+            -DCMAKE_INSTALL_RPATH='@loader_path' \
+            -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
+            -DLLAMA_FATAL_WARNINGS=ON \
+            -DLLAMA_BUILD_BORINGSSL=ON \
+            ${{ env.CMAKE_ARGS }}
+          cmake --build build --config Release -j $(sysctl -n hw.logicalcpu)
+
+      - name: Determine tag name
+        id: tag
+        uses: ./.github/actions/get-tag-name
+
+      - name: Pack artifacts
+        run: |
+          cp LICENSE ./build/bin/
+          tar -czvf llama-${{ steps.tag.outputs.name }}-bin-macos-arm64.tar.gz -s ",^\.,llama-${{ steps.tag.outputs.name }}," -C ./build/bin .
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          path: llama-${{ steps.tag.outputs.name }}-bin-macos-arm64.tar.gz
+          name: llama-bin-macos-arm64.tar.gz
+
+      - name: ccache-clear
+        uses: ./.github/actions/ccache-clear
+        with:
+          key: release-moe-macos-arm64
+
+  ubuntu-cpu-x64:
+    name: ubuntu-x64 (CPU)
+    needs: [ui-build]
+    runs-on: ubuntu-22.04
+    permissions:
+      actions: write
+    steps:
+      - name: Clone
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Download UI build
+        uses: actions/download-artifact@v7
+        with:
+          name: llama-ui.zip
+          path: tools/ui/dist
+
+      - name: Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install build-essential libssl-dev
+
+      - name: ccache
+        uses: ggml-org/ccache-action@v1.2.24
+        with:
+          key: release-moe-ubuntu-x64-cpu
+
+      - name: Build
+        run: |
+          cmake -B build \
+            -DCMAKE_INSTALL_RPATH='$ORIGIN' \
+            -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
+            -DGGML_BACKEND_DL=ON \
+            -DGGML_NATIVE=OFF \
+            -DGGML_CPU_ALL_VARIANTS=ON \
+            -DLLAMA_FATAL_WARNINGS=ON \
+            ${{ env.CMAKE_ARGS }}
+          cmake --build build --config Release -j $(nproc)
+
+      - name: Determine tag name
+        id: tag
+        uses: ./.github/actions/get-tag-name
+
+      - name: Pack artifacts
+        run: |
+          cp LICENSE ./build/bin/
+          tar -czvf llama-${{ steps.tag.outputs.name }}-bin-ubuntu-x64.tar.gz --transform "s,^\.,llama-${{ steps.tag.outputs.name }}," -C ./build/bin .
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          path: llama-${{ steps.tag.outputs.name }}-bin-ubuntu-x64.tar.gz
+          name: llama-bin-ubuntu-x64.tar.gz
+
+      - name: ccache-clear
+        uses: ./.github/actions/ccache-clear
+        with:
+          key: release-moe-ubuntu-x64-cpu
+
+  windows-cpu-x64:
+    name: windows-x64 (CPU)
+    needs: [ui-build]
+    runs-on: windows-2025-vs2026
+    permissions:
+      actions: write
+    steps:
+      - name: Clone
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Download UI build
+        uses: actions/download-artifact@v7
+        with:
+          name: llama-ui.zip
+          path: tools/ui/dist
+
+      - name: Install Ninja
+        run: |
+          choco install ninja
+
+      - name: ccache
+        uses: ggml-org/ccache-action@v1.2.24
+        with:
+          key: release-moe-windows-x64-cpu
+
+      - name: Build
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          cmake -S . -B build -G "Ninja Multi-Config" ^
+            -D CMAKE_TOOLCHAIN_FILE=cmake/x64-windows-llvm.cmake ^
+            -DLLAMA_BUILD_BORINGSSL=ON ^
+            -DGGML_NATIVE=OFF ^
+            -DGGML_BACKEND_DL=ON ^
+            -DGGML_CPU_ALL_VARIANTS=ON ^
+            -DGGML_OPENMP=ON ^
+            -DGGML_OPENMP_FETCH=ON ^
+            ${{ env.CMAKE_ARGS }}
+          cmake --build build --config Release
+
+      - name: Pack artifacts
+        run: |
+          7z a -snl llama-bin-win-cpu-x64.zip .\build\bin\Release\*
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          path: llama-bin-win-cpu-x64.zip
+          name: llama-bin-win-cpu-x64.zip
+
+      - name: ccache-clear
+        uses: ./.github/actions/ccache-clear
+        with:
+          key: release-moe-windows-x64-cpu
+
+  windows-cuda-x64:
+    name: windows-x64 (CUDA ${{ matrix.cuda }})
+    strategy:
+      matrix:
+        include:
+          - cuda: '12.4'
+            defines: '-DGGML_CUDA_CUB_3DOT2=ON'
+          - cuda: '13.3'
+            defines: ''
+    runs-on: windows-2022
+    permissions:
+      actions: write
+    steps:
+      - name: Clone
+        uses: actions/checkout@v6
+
+      - name: Install Cuda Toolkit
+        uses: ./.github/actions/windows-setup-cuda
+        with:
+          cuda_version: ${{ matrix.cuda }}
+          cuda_arch: x64
+
+      - name: Install Ninja
+        run: |
+          choco install ninja
+
+      - name: ccache
+        uses: ggml-org/ccache-action@v1.2.24
+        with:
+          key: release-moe-windows-x64-cuda-${{ matrix.cuda }}
+          evict-old-files: 1d
+
+      - name: Build
+        shell: cmd
+        # builds only ggml-cuda.dll; llama-server + CPU binaries are injected
+        # from the windows-cpu zip in the release job (same as upstream)
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          cmake -S . -B build -G "Ninja Multi-Config" ^
+            -DGGML_BACKEND_DL=ON ^
+            -DGGML_NATIVE=OFF ^
+            -DGGML_CPU=OFF ^
+            -DGGML_CUDA=ON ^
+            -DLLAMA_BUILD_BORINGSSL=ON ${{ matrix.defines }}
+          set /A NINJA_JOBS=%NUMBER_OF_PROCESSORS%-1
+          cmake --build build --config Release -j %NINJA_JOBS% --target ggml-cuda
+
+      - name: Pack artifacts
+        run: |
+          7z a -snl llama-bin-win-cuda-${{ matrix.cuda }}-x64.zip .\build\bin\Release\ggml-cuda.dll
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          path: llama-bin-win-cuda-${{ matrix.cuda }}-x64.zip
+          name: llama-bin-win-cuda-${{ matrix.cuda }}-x64.zip
+
+      - name: Copy and pack CUDA runtime
+        run: |
+          echo "Cuda install location: ${{ env.CUDA_PATH }}"
+          $dst='.\build\bin\cudart\'
+          robocopy "${{env.CUDA_PATH}}\bin" $dst cudart64_*.dll cublas64_*.dll cublasLt64_*.dll
+          robocopy "${{env.CUDA_PATH}}\lib" $dst cudart64_*.dll cublas64_*.dll cublasLt64_*.dll
+          robocopy "${{env.CUDA_PATH}}\bin\x64" $dst cudart64_*.dll cublas64_*.dll cublasLt64_*.dll
+          7z a cudart-llama-bin-win-cuda-${{ matrix.cuda }}-x64.zip $dst\*
+
+      - name: Upload CUDA runtime
+        uses: actions/upload-artifact@v6
+        with:
+          path: cudart-llama-bin-win-cuda-${{ matrix.cuda }}-x64.zip
+          name: cudart-llama-bin-win-cuda-${{ matrix.cuda }}-x64.zip
+
+      - name: ccache-clear
+        uses: ./.github/actions/ccache-clear
+        with:
+          key: release-moe-windows-x64-cuda-${{ matrix.cuda }}
+
+  release-moe:
+    if: ${{ github.event.inputs.create_release == 'true' }}
+    needs:
+      - ui-build
+      - macos-arm64
+      - ubuntu-cpu-x64
+      - windows-cpu-x64
+      - windows-cuda-x64
+    runs-on: ubuntu-slim
+    permissions:
+      contents: write
+    steps:
+      - name: Clone
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Determine tag name
+        id: tag
+        uses: ./.github/actions/get-tag-name
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v7
+        with:
+          path: ./artifact
+          merge-multiple: true
+
+      - name: Merge artifacts
+        run: |
+          mkdir -p release
+
+          # inject the windows-cpu toolset (llama-server + CPU backend) into the
+          # CUDA zips so every windows archive ships the full set of binaries
+          echo "Injecting windows-cpu binaries into the CUDA zips..."
+          cpu_zip="artifact/llama-bin-win-cpu-x64.zip"
+          temp_dir=$(mktemp -d)
+          unzip "$cpu_zip" -d "$temp_dir"
+          for target_zip in artifact/llama-bin-win-cuda-*-x64.zip; do
+            echo "Injecting into $(basename "$target_zip")"
+            realpath_target_zip=$(realpath "$target_zip")
+            (cd "$temp_dir" && zip -r "$realpath_target_zip" .)
+          done
+          rm -rf "$temp_dir"
+
+          echo "Renaming and moving zips to release..."
+          for zip_file in artifact/llama-bin-win-*.zip; do
+            base_name=$(basename "$zip_file" .zip)
+            zip_name="llama-${{ steps.tag.outputs.name }}-${base_name#llama-}.zip"
+            echo "Moving $zip_file to release/$zip_name"
+            mv "$zip_file" "release/$zip_name"
+          done
+
+          echo "Moving other artifacts..."
+          mv -v artifact/*.zip release
+          mv -v artifact/*.tar.gz release
+          ls -la release/
+
+      - name: Download UI build
+        uses: actions/download-artifact@v7
+        with:
+          name: llama-ui.zip
+          path: ./ui-dist
+
+      - name: Package UI
+        run: |
+          tar -czvf release/llama-${{ steps.tag.outputs.name }}-ui.tar.gz --transform "s,^\.,llama-${{ steps.tag.outputs.name }}," -C ./ui-dist .
+
+      - name: Create release and upload assets
+        run: |
+          TAG="${{ steps.tag.outputs.name }}"
+          cat > notes.md << 'EOF'
+          First release of the **moe-expansion** branch: MoE expert expansion
+          (configurable routed-expert budget with linear influence decay,
+          adaptive threshold, layer range) on top of stock llama.cpp, with the
+          flag set off by default (bit-identical to upstream when unused).
+
+          Trimmed matrix (see `.github/workflows/release-moe.yml`): x64 CPU
+          (Ubuntu/Windows), Windows x64 CUDA 12/13, macOS arm64 (Metal).
+
+          Docs: [docs/moe-expansion.md](https://github.com/vagrillo/llama.cpp/blob/moe-expansion/docs/moe-expansion.md) ·
+          GPQA-Diamond RUN1209 benchmark: [benchmark/RUN1209/finalcompariso1209.md](https://github.com/vagrillo/llama.cpp/blob/moe-expansion/benchmark/RUN1209/finalcompariso1209.md)
+          EOF
+          gh release create "$TAG" --target "$GITHUB_SHA" --prerelease \
+            --title "moe-expansion $TAG" --notes-file notes.md
+          gh release upload "$TAG" release/*
+          gh release view "$TAG" --json assets --jq '.assets[].name'
