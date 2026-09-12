@@ -1,0 +1,6661 @@
+{
+ "summary": {
+  "q35_exp": {
+   "acc": 84.34,
+   "n_ok": 167,
+   "tok": {
+    "mean": 7737.5,
+    "median": 5448.0,
+    "p90": 16751,
+    "max": 32768,
+    "min": 1783,
+    "total": 1532034
+   },
+   "latency_s": {
+    "mean": 91.4,
+    "median": 63.7,
+    "p90": 201.35352659900673,
+    "max": 398.34020753297955,
+    "min": 21.914853422989836,
+    "total": 18089.159228638106
+   },
+   "tok_per_s_mean_of_q": 85.1,
+   "tok_per_s_aggregate": 84.69,
+   "tpot_ms": 11.7,
+   "ttft_s": 0.35,
+   "trunc": 6,
+   "loop_suspects": 76,
+   "buckets": [
+    {
+     "bucket": "brief (<2k)",
+     "n": 2,
+     "acc": 100.0,
+     "mean_tok": 1868
+    },
+    {
+     "bucket": "normal (2-5k)",
+     "n": 84,
+     "acc": 90.48,
+     "mean_tok": 3651.7
+    },
+    {
+     "bucket": "medium (5-10k)",
+     "n": 72,
+     "acc": 84.72,
+     "mean_tok": 6683
+    },
+    {
+     "bucket": "long (10-20k)",
+     "n": 27,
+     "acc": 85.19,
+     "mean_tok": 14383.4
+    },
+    {
+     "bucket": "very long (>20k)",
+     "n": 13,
+     "acc": 38.46,
+     "mean_tok": 27079.3
+    }
+   ],
+   "subjects": {
+    "Chemistry": {
+     "n": 93,
+     "acc": 76.34,
+     "mean_tok": 10621.7,
+     "mean_lat": 125.9
+    },
+    "Physics": {
+     "n": 86,
+     "acc": 95.35,
+     "mean_tok": 5187.3,
+     "mean_lat": 60.7
+    },
+    "Biology": {
+     "n": 19,
+     "acc": 73.68,
+     "mean_tok": 5163.8,
+     "mean_lat": 61.1
+    }
+   }
+  },
+  "q35_native": {
+   "acc": 81.82,
+   "n_ok": 162,
+   "tok": {
+    "mean": 7415.6,
+    "median": 5403.0,
+    "p90": 16120,
+    "max": 32768,
+    "min": 1853,
+    "total": 1468289
+   },
+   "latency_s": {
+    "mean": 75.8,
+    "median": 54.7,
+    "p90": 159.10782523397938,
+    "max": 359.1011914499977,
+    "min": 18.495609831996262,
+    "total": 15017.136967168044
+   },
+   "tok_per_s_mean_of_q": 98.71,
+   "tok_per_s_aggregate": 97.77,
+   "tpot_ms": 10.07,
+   "ttft_s": 0.36,
+   "trunc": 5,
+   "loop_suspects": 68,
+   "buckets": [
+    {
+     "bucket": "brief (<2k)",
+     "n": 5,
+     "acc": 100.0,
+     "mean_tok": 1901.6
+    },
+    {
+     "bucket": "normal (2-5k)",
+     "n": 79,
+     "acc": 88.61,
+     "mean_tok": 3667.3
+    },
+    {
+     "bucket": "medium (5-10k)",
+     "n": 82,
+     "acc": 86.59,
+     "mean_tok": 6669.0
+    },
+    {
+     "bucket": "long (10-20k)",
+     "n": 20,
+     "acc": 60.0,
+     "mean_tok": 14210.1
+    },
+    {
+     "bucket": "very long (>20k)",
+     "n": 12,
+     "acc": 33.33,
+     "mean_tok": 28167.2
+    }
+   ],
+   "subjects": {
+    "Chemistry": {
+     "n": 93,
+     "acc": 70.97,
+     "mean_tok": 10191.5,
+     "mean_lat": 104.8
+    },
+    "Physics": {
+     "n": 86,
+     "acc": 95.35,
+     "mean_tok": 4931.0,
+     "mean_lat": 49.7
+    },
+    "Biology": {
+     "n": 19,
+     "acc": 73.68,
+     "mean_tok": 5074.7,
+     "mean_lat": 52.2
+    }
+   }
+  },
+  "q27b": {
+   "acc": 83.84,
+   "n_ok": 166,
+   "tok": {
+    "mean": 10910.8,
+    "median": 6757.5,
+    "p90": 32768,
+    "max": 32768,
+    "min": 198,
+    "total": 2160347
+   },
+   "latency_s": {
+    "mean": 375.2,
+    "median": 227.7,
+    "p90": 1125.8086236779927,
+    "max": 1228.7478546530183,
+    "min": 7.234194248972926,
+    "total": 74287.02411240223
+   },
+   "tok_per_s_mean_of_q": 28.99,
+   "tok_per_s_aggregate": 29.08,
+   "tpot_ms": 33.88,
+   "ttft_s": 1.38,
+   "trunc": 24,
+   "loop_suspects": 66,
+   "buckets": [
+    {
+     "bucket": "brief (<2k)",
+     "n": 57,
+     "acc": 94.74,
+     "mean_tok": 1023.7
+    },
+    {
+     "bucket": "normal (2-5k)",
+     "n": 26,
+     "acc": 100.0,
+     "mean_tok": 3113.6
+    },
+    {
+     "bucket": "medium (5-10k)",
+     "n": 39,
+     "acc": 94.87,
+     "mean_tok": 7427.6
+    },
+    {
+     "bucket": "long (10-20k)",
+     "n": 37,
+     "acc": 97.3,
+     "mean_tok": 14373.5
+    },
+    {
+     "bucket": "very long (>20k)",
+     "n": 39,
+     "acc": 33.33,
+     "mean_tok": 30757.6
+    }
+   ],
+   "subjects": {
+    "Chemistry": {
+     "n": 93,
+     "acc": 74.19,
+     "mean_tok": 16684.6,
+     "mean_lat": 573.3
+    },
+    "Physics": {
+     "n": 86,
+     "acc": 95.35,
+     "mean_tok": 4916.2,
+     "mean_lat": 170.1
+    },
+    "Biology": {
+     "n": 19,
+     "acc": 78.95,
+     "mean_tok": 9783.3,
+     "mean_lat": 333.7
+    }
+   }
+  },
+  "ds4_exp": {
+   "acc": 85.35,
+   "n_ok": 169,
+   "tok": {
+    "mean": 5631,
+    "median": 1579.5,
+    "p90": 21407,
+    "max": 32768,
+    "min": 42,
+    "total": 1114938
+   },
+   "latency_s": {
+    "mean": 346.0,
+    "median": 97.0,
+    "p90": 1321.9804708566517,
+    "max": 2072.976581373252,
+    "min": 3.356033551506698,
+    "total": 68508.65153048001
+   },
+   "tok_per_s_mean_of_q": 15.99,
+   "tok_per_s_aggregate": 16.27,
+   "tpot_ms": 61.18,
+   "ttft_s": 1.09,
+   "trunc": 9,
+   "loop_suspects": 74,
+   "buckets": [
+    {
+     "bucket": "brief (<2k)",
+     "n": 109,
+     "acc": 94.5,
+     "mean_tok": 701.7
+    },
+    {
+     "bucket": "normal (2-5k)",
+     "n": 27,
+     "acc": 92.59,
+     "mean_tok": 3122.8
+    },
+    {
+     "bucket": "medium (5-10k)",
+     "n": 27,
+     "acc": 88.89,
+     "mean_tok": 6680.7
+    },
+    {
+     "bucket": "long (10-20k)",
+     "n": 13,
+     "acc": 84.62,
+     "mean_tok": 13078.6
+    },
+    {
+     "bucket": "very long (>20k)",
+     "n": 22,
+     "acc": 27.27,
+     "mean_tok": 27442.7
+    }
+   ],
+   "subjects": {
+    "Chemistry": {
+     "n": 93,
+     "acc": 81.72,
+     "mean_tok": 9354.8,
+     "mean_lat": 573.1
+    },
+    "Physics": {
+     "n": 86,
+     "acc": 90.7,
+     "mean_tok": 1814.1,
+     "mean_lat": 112.9
+    },
+    "Biology": {
+     "n": 19,
+     "acc": 78.95,
+     "mean_tok": 4680.5,
+     "mean_lat": 289.1
+    }
+   }
+  },
+  "ds4_native": {
+   "acc": 85.35,
+   "n_ok": 169,
+   "tok": {
+    "mean": 5933.3,
+    "median": 1443.0,
+    "p90": 20036,
+    "max": 32768,
+    "min": 48,
+    "total": 1174801
+   },
+   "latency_s": {
+    "mean": 324.1,
+    "median": 78.5,
+    "p90": 1131.4519087597728,
+    "max": 1837.2099520610645,
+    "min": 3.4400263242423534,
+    "total": 64165.68651038222
+   },
+   "tok_per_s_mean_of_q": 17.85,
+   "tok_per_s_aggregate": 18.31,
+   "tpot_ms": 54.61,
+   "ttft_s": 0.99,
+   "trunc": 12,
+   "loop_suspects": 72,
+   "buckets": [
+    {
+     "bucket": "brief (<2k)",
+     "n": 112,
+     "acc": 93.75,
+     "mean_tok": 657.3
+    },
+    {
+     "bucket": "normal (2-5k)",
+     "n": 28,
+     "acc": 89.29,
+     "mean_tok": 3505.2
+    },
+    {
+     "bucket": "medium (5-10k)",
+     "n": 20,
+     "acc": 85.0,
+     "mean_tok": 7193.4
+    },
+    {
+     "bucket": "long (10-20k)",
+     "n": 18,
+     "acc": 83.33,
+     "mean_tok": 14300.7
+    },
+    {
+     "bucket": "very long (>20k)",
+     "n": 20,
+     "acc": 35.0,
+     "mean_tok": 30087.8
+    }
+   ],
+   "subjects": {
+    "Chemistry": {
+     "n": 93,
+     "acc": 80.65,
+     "mean_tok": 9547.1,
+     "mean_lat": 519.9
+    },
+    "Physics": {
+     "n": 86,
+     "acc": 93.02,
+     "mean_tok": 1744.2,
+     "mean_lat": 96.7
+    },
+    "Biology": {
+     "n": 19,
+     "acc": 73.68,
+     "mean_tok": 7206.1,
+     "mean_lat": 394.8
+    }
+   }
+  }
+ },
+ "paired": {
+  "q35_exp_vs_q35_native": {
+   "a_wins": 12,
+   "b_wins": 7,
+   "both_right": 155,
+   "both_wrong": 24,
+   "net": 5
+  },
+  "ds4_exp_vs_ds4_native": {
+   "a_wins": 6,
+   "b_wins": 6,
+   "both_right": 163,
+   "both_wrong": 23,
+   "net": 0
+  },
+  "q35_exp_vs_q27b": {
+   "a_wins": 15,
+   "b_wins": 14,
+   "both_right": 152,
+   "both_wrong": 17,
+   "net": 1
+  },
+  "ds4_exp_vs_q35_exp": {
+   "a_wins": 16,
+   "b_wins": 14,
+   "both_right": 153,
+   "both_wrong": 15,
+   "net": 2
+  },
+  "ds4_exp_vs_q35_native": {
+   "a_wins": 20,
+   "b_wins": 13,
+   "both_right": 149,
+   "both_wrong": 16,
+   "net": 7
+  }
+ },
+ "restricted": {
+  "q35_exp_vs_q35_native": {
+   "both_correct": {
+    "n": 155,
+    "q35_exp": {
+     "tok_mean": 6472.3,
+     "tok_median": 4997,
+     "lat_mean": 76.25,
+     "tok_per_s_mean": 85.1,
+     "tok_per_s_agg": 84.879
+    },
+    "q35_native": {
+     "tok_mean": 5913.0,
+     "tok_median": 5065,
+     "lat_mean": 59.93,
+     "tok_per_s_mean": 98.97,
+     "tok_per_s_agg": 98.665
+    },
+    "tok_delta_pct": 9.46,
+    "lat_delta_pct": 27.23
+   },
+   "same_outcome": {
+    "n": 179,
+    "q35_exp": {
+     "tok_mean": 7266.3,
+     "tok_median": 5142,
+     "lat_mean": 85.81,
+     "tok_per_s_mean": 85.07,
+     "tok_per_s_agg": 84.679
+    },
+    "q35_native": {
+     "tok_mean": 6756.4,
+     "tok_median": 5105,
+     "lat_mean": 68.99,
+     "tok_per_s_mean": 98.8,
+     "tok_per_s_agg": 97.934
+    },
+    "tok_delta_pct": 7.55,
+    "lat_delta_pct": 24.38
+   }
+  },
+  "ds4_exp_vs_ds4_native": {
+   "both_correct": {
+    "n": 163,
+    "ds4_exp": {
+     "tok_mean": 3320.6,
+     "tok_median": 1169,
+     "lat_mean": 205.45,
+     "tok_per_s_mean": 15.93,
+     "tok_per_s_agg": 16.162
+    },
+    "ds4_native": {
+     "tok_mean": 3558.0,
+     "tok_median": 1072,
+     "lat_mean": 194.87,
+     "tok_per_s_mean": 17.8,
+     "tok_per_s_agg": 18.258
+    },
+    "tok_delta_pct": -6.67,
+    "lat_delta_pct": 5.43
+   },
+   "same_outcome": {
+    "n": 186,
+    "ds4_exp": {
+     "tok_mean": 5042.2,
+     "tok_median": 1426.0,
+     "lat_mean": 309.34,
+     "tok_per_s_mean": 15.98,
+     "tok_per_s_agg": 16.3
+    },
+    "ds4_native": {
+     "tok_mean": 5107.1,
+     "tok_median": 1244.0,
+     "lat_mean": 278.14,
+     "tok_per_s_mean": 17.84,
+     "tok_per_s_agg": 18.361
+    },
+    "tok_delta_pct": -1.27,
+    "lat_delta_pct": 11.22
+   }
+  }
+ },
+ "all5": {
+  "all_right": 141,
+  "all_wrong": 12
+ },
+ "divergent": {
+  "q35": [
+   {
+    "idx": 12,
+    "domain": "Chemistry",
+    "winner": "q35_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 25,
+    "domain": "Chemistry",
+    "winner": "q35_native",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 32,
+    "domain": "Chemistry",
+    "winner": "q35_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 33,
+    "domain": "Chemistry",
+    "winner": "q35_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 36,
+    "domain": "Chemistry",
+    "winner": "q35_native",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 69,
+    "domain": "Chemistry",
+    "winner": "q35_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 79,
+    "domain": "Biology",
+    "winner": "q35_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 94,
+    "domain": "Chemistry",
+    "winner": "q35_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 97,
+    "domain": "Chemistry",
+    "winner": "q35_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 109,
+    "domain": "Physics",
+    "winner": "q35_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 120,
+    "domain": "Chemistry",
+    "winner": "q35_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 126,
+    "domain": "Chemistry",
+    "winner": "q35_native",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 130,
+    "domain": "Chemistry",
+    "winner": "q35_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 131,
+    "domain": "Chemistry",
+    "winner": "q35_native",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 142,
+    "domain": "Chemistry",
+    "winner": "q35_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 157,
+    "domain": "Biology",
+    "winner": "q35_native",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 162,
+    "domain": "Chemistry",
+    "winner": "q35_native",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 178,
+    "domain": "Physics",
+    "winner": "q35_native",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 185,
+    "domain": "Chemistry",
+    "winner": "q35_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   }
+  ],
+  "q35_n": 19,
+  "ds4": [
+   {
+    "idx": 12,
+    "domain": "Chemistry",
+    "winner": "ds4_native",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 37,
+    "domain": "Chemistry",
+    "winner": "ds4_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 71,
+    "domain": "Chemistry",
+    "winner": "ds4_native",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 79,
+    "domain": "Biology",
+    "winner": "ds4_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 85,
+    "domain": "Chemistry",
+    "winner": "ds4_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 102,
+    "domain": "Chemistry",
+    "winner": "ds4_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 115,
+    "domain": "Chemistry",
+    "winner": "ds4_native",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 118,
+    "domain": "Chemistry",
+    "winner": "ds4_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 126,
+    "domain": "Chemistry",
+    "winner": "ds4_native",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 140,
+    "domain": "Chemistry",
+    "winner": "ds4_exp",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 158,
+    "domain": "Physics",
+    "winner": "ds4_native",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   },
+   {
+    "idx": 192,
+    "domain": "Physics",
+    "winner": "ds4_native",
+    "q": "answer the following multiple choice question. the last line of your response should be of the following forma"
+   }
+  ],
+  "ds4_n": 12
+ },
+ "loop_details": {
+  "q35_exp": [
+   {
+    "idx": 2,
+    "domain": "Physics",
+    "correct": true,
+    "out": 5146,
+    "stop": "stop",
+    "zratio": 0.276,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 4,
+    "domain": "Physics",
+    "correct": true,
+    "out": 5104,
+    "stop": "stop",
+    "zratio": 0.288,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 8,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 7670,
+    "stop": "stop",
+    "zratio": 0.285,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 18,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5951,
+    "stop": "stop",
+    "zratio": 0.267,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 22,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 7466,
+    "stop": "stop",
+    "zratio": 0.284,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 23,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 8495,
+    "stop": "stop",
+    "zratio": 0.26,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 25,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 7359,
+    "stop": "stop",
+    "zratio": 0.298,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 28,
+    "domain": "Biology",
+    "correct": true,
+    "out": 8905,
+    "stop": "stop",
+    "zratio": 0.262,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 32,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 13513,
+    "stop": "stop",
+    "zratio": 0.245,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 33,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 8992,
+    "stop": "stop",
+    "zratio": 0.294,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 36,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.189,
+    "maxline": 13,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 37,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 20054,
+    "stop": "stop",
+    "zratio": 0.248,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 44,
+    "domain": "Physics",
+    "correct": true,
+    "out": 10779,
+    "stop": "stop",
+    "zratio": 0.277,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 45,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 16908,
+    "stop": "stop",
+    "zratio": 0.26,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 48,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 12060,
+    "stop": "stop",
+    "zratio": 0.203,
+    "maxline": 7,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 53,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 19588,
+    "stop": "stop",
+    "zratio": 0.231,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 54,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 6758,
+    "stop": "stop",
+    "zratio": 0.289,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 60,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 18038,
+    "stop": "stop",
+    "zratio": 0.229,
+    "maxline": 13,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 61,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 15051,
+    "stop": "stop",
+    "zratio": 0.232,
+    "maxline": 5,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 64,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 8183,
+    "stop": "stop",
+    "zratio": 0.286,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 66,
+    "domain": "Physics",
+    "correct": true,
+    "out": 20478,
+    "stop": "stop",
+    "zratio": 0.242,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 67,
+    "domain": "Physics",
+    "correct": true,
+    "out": 16309,
+    "stop": "stop",
+    "zratio": 0.226,
+    "maxline": 8,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 68,
+    "domain": "Physics",
+    "correct": true,
+    "out": 10301,
+    "stop": "stop",
+    "zratio": 0.293,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 69,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 8793,
+    "stop": "stop",
+    "zratio": 0.28,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 71,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 9102,
+    "stop": "stop",
+    "zratio": 0.285,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 75,
+    "domain": "Biology",
+    "correct": false,
+    "out": 5142,
+    "stop": "stop",
+    "zratio": 0.273,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 76,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 11608,
+    "stop": "stop",
+    "zratio": 0.25,
+    "maxline": 5,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 77,
+    "domain": "Physics",
+    "correct": true,
+    "out": 6068,
+    "stop": "stop",
+    "zratio": 0.289,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 78,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 15508,
+    "stop": "stop",
+    "zratio": 0.241,
+    "maxline": 5,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 85,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 21092,
+    "stop": "stop",
+    "zratio": 0.272,
+    "maxline": 6,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 86,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 22826,
+    "stop": "stop",
+    "zratio": 0.246,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 88,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.118,
+    "maxline": 17,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 89,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 23830,
+    "stop": "stop",
+    "zratio": 0.275,
+    "maxline": 6,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 93,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.241,
+    "maxline": 9,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 97,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 13704,
+    "stop": "stop",
+    "zratio": 0.244,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 98,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 16962,
+    "stop": "stop",
+    "zratio": 0.254,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 100,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5116,
+    "stop": "stop",
+    "zratio": 0.3,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 105,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 7002,
+    "stop": "stop",
+    "zratio": 0.292,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 108,
+    "domain": "Physics",
+    "correct": true,
+    "out": 9418,
+    "stop": "stop",
+    "zratio": 0.297,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 115,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 9250,
+    "stop": "stop",
+    "zratio": 0.298,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 117,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5308,
+    "stop": "stop",
+    "zratio": 0.292,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 118,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 14594,
+    "stop": "stop",
+    "zratio": 0.279,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 121,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.232,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 126,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 16751,
+    "stop": "stop",
+    "zratio": 0.236,
+    "maxline": 5,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 127,
+    "domain": "Biology",
+    "correct": false,
+    "out": 17770,
+    "stop": "stop",
+    "zratio": 0.216,
+    "maxline": 5,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 128,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 23707,
+    "stop": "stop",
+    "zratio": 0.231,
+    "maxline": 6,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 129,
+    "domain": "Physics",
+    "correct": true,
+    "out": 5802,
+    "stop": "stop",
+    "zratio": 0.3,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 131,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.085,
+    "maxline": 140,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 132,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5850,
+    "stop": "stop",
+    "zratio": 0.297,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 138,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 7875,
+    "stop": "stop",
+    "zratio": 0.258,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 140,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 13881,
+    "stop": "stop",
+    "zratio": 0.259,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 142,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 10661,
+    "stop": "stop",
+    "zratio": 0.235,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 143,
+    "domain": "Physics",
+    "correct": true,
+    "out": 6747,
+    "stop": "stop",
+    "zratio": 0.298,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 144,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 10987,
+    "stop": "stop",
+    "zratio": 0.263,
+    "maxline": 5,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 145,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.202,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 147,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 23436,
+    "stop": "stop",
+    "zratio": 0.26,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 149,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 17348,
+    "stop": "stop",
+    "zratio": 0.274,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 150,
+    "domain": "Physics",
+    "correct": true,
+    "out": 7153,
+    "stop": "stop",
+    "zratio": 0.263,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 152,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 10742,
+    "stop": "stop",
+    "zratio": 0.245,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 154,
+    "domain": "Physics",
+    "correct": true,
+    "out": 5461,
+    "stop": "stop",
+    "zratio": 0.262,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 157,
+    "domain": "Biology",
+    "correct": false,
+    "out": 4301,
+    "stop": "stop",
+    "zratio": 0.278,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 166,
+    "domain": "Physics",
+    "correct": true,
+    "out": 9172,
+    "stop": "stop",
+    "zratio": 0.277,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 168,
+    "domain": "Physics",
+    "correct": true,
+    "out": 7833,
+    "stop": "stop",
+    "zratio": 0.26,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 169,
+    "domain": "Physics",
+    "correct": true,
+    "out": 3721,
+    "stop": "stop",
+    "zratio": 0.278,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 172,
+    "domain": "Physics",
+    "correct": true,
+    "out": 4568,
+    "stop": "stop",
+    "zratio": 0.297,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 175,
+    "domain": "Physics",
+    "correct": true,
+    "out": 5544,
+    "stop": "stop",
+    "zratio": 0.299,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 177,
+    "domain": "Physics",
+    "correct": true,
+    "out": 4997,
+    "stop": "stop",
+    "zratio": 0.288,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 178,
+    "domain": "Physics",
+    "correct": false,
+    "out": 7312,
+    "stop": "stop",
+    "zratio": 0.288,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 179,
+    "domain": "Physics",
+    "correct": true,
+    "out": 14736,
+    "stop": "stop",
+    "zratio": 0.287,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 183,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 7717,
+    "stop": "stop",
+    "zratio": 0.296,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 184,
+    "domain": "Physics",
+    "correct": true,
+    "out": 3915,
+    "stop": "stop",
+    "zratio": 0.281,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 185,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 13191,
+    "stop": "stop",
+    "zratio": 0.214,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 190,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 16746,
+    "stop": "stop",
+    "zratio": 0.279,
+    "maxline": 7,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 192,
+    "domain": "Physics",
+    "correct": true,
+    "out": 4574,
+    "stop": "stop",
+    "zratio": 0.294,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 193,
+    "domain": "Physics",
+    "correct": true,
+    "out": 4052,
+    "stop": "stop",
+    "zratio": 0.337,
+    "maxline": 6,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 196,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 13341,
+    "stop": "stop",
+    "zratio": 0.282,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   }
+  ],
+  "q35_native": [
+   {
+    "idx": 2,
+    "domain": "Physics",
+    "correct": true,
+    "out": 4452,
+    "stop": "stop",
+    "zratio": 0.289,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 3,
+    "domain": "Physics",
+    "correct": true,
+    "out": 4396,
+    "stop": "stop",
+    "zratio": 0.285,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 4,
+    "domain": "Physics",
+    "correct": true,
+    "out": 5828,
+    "stop": "stop",
+    "zratio": 0.27,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 5,
+    "domain": "Physics",
+    "correct": true,
+    "out": 4533,
+    "stop": "stop",
+    "zratio": 0.29,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 18,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5014,
+    "stop": "stop",
+    "zratio": 0.294,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 22,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 7829,
+    "stop": "stop",
+    "zratio": 0.291,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 23,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 6509,
+    "stop": "stop",
+    "zratio": 0.29,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 25,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 16120,
+    "stop": "stop",
+    "zratio": 0.275,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 28,
+    "domain": "Biology",
+    "correct": true,
+    "out": 6665,
+    "stop": "stop",
+    "zratio": 0.298,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 29,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5968,
+    "stop": "stop",
+    "zratio": 0.295,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 32,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 7824,
+    "stop": "stop",
+    "zratio": 0.289,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 33,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 10144,
+    "stop": "stop",
+    "zratio": 0.279,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 36,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 24394,
+    "stop": "stop",
+    "zratio": 0.234,
+    "maxline": 8,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 37,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 20126,
+    "stop": "stop",
+    "zratio": 0.254,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 42,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5158,
+    "stop": "stop",
+    "zratio": 0.299,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 44,
+    "domain": "Physics",
+    "correct": true,
+    "out": 8991,
+    "stop": "stop",
+    "zratio": 0.267,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 48,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 19504,
+    "stop": "stop",
+    "zratio": 0.23,
+    "maxline": 6,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 53,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 8682,
+    "stop": "stop",
+    "zratio": 0.269,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 54,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 10986,
+    "stop": "stop",
+    "zratio": 0.283,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 60,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 15632,
+    "stop": "stop",
+    "zratio": 0.244,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 61,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 18996,
+    "stop": "stop",
+    "zratio": 0.217,
+    "maxline": 5,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 66,
+    "domain": "Physics",
+    "correct": true,
+    "out": 8443,
+    "stop": "stop",
+    "zratio": 0.277,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 67,
+    "domain": "Physics",
+    "correct": true,
+    "out": 4600,
+    "stop": "stop",
+    "zratio": 0.296,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 68,
+    "domain": "Physics",
+    "correct": true,
+    "out": 8685,
+    "stop": "stop",
+    "zratio": 0.289,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 69,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 10111,
+    "stop": "stop",
+    "zratio": 0.286,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 71,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 10943,
+    "stop": "stop",
+    "zratio": 0.249,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 81,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 6808,
+    "stop": "stop",
+    "zratio": 0.287,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 85,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 11109,
+    "stop": "stop",
+    "zratio": 0.256,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 88,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.19,
+    "maxline": 12,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 89,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 20707,
+    "stop": "stop",
+    "zratio": 0.279,
+    "maxline": 5,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 93,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.253,
+    "maxline": 7,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 97,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.246,
+    "maxline": 6,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 98,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 9533,
+    "stop": "stop",
+    "zratio": 0.28,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 109,
+    "domain": "Physics",
+    "correct": false,
+    "out": 7421,
+    "stop": "stop",
+    "zratio": 0.297,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 110,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 9610,
+    "stop": "stop",
+    "zratio": 0.29,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 117,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5812,
+    "stop": "stop",
+    "zratio": 0.3,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 118,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 26006,
+    "stop": "stop",
+    "zratio": 0.264,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 120,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.231,
+    "maxline": 5,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 121,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.231,
+    "maxline": 5,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 126,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 9997,
+    "stop": "stop",
+    "zratio": 0.261,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 127,
+    "domain": "Biology",
+    "correct": false,
+    "out": 19485,
+    "stop": "stop",
+    "zratio": 0.219,
+    "maxline": 5,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 128,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 18331,
+    "stop": "stop",
+    "zratio": 0.265,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 131,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 17627,
+    "stop": "stop",
+    "zratio": 0.247,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 133,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 6605,
+    "stop": "stop",
+    "zratio": 0.281,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 135,
+    "domain": "Physics",
+    "correct": true,
+    "out": 5467,
+    "stop": "stop",
+    "zratio": 0.284,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 138,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 4507,
+    "stop": "stop",
+    "zratio": 0.298,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 140,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 18990,
+    "stop": "stop",
+    "zratio": 0.246,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 142,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 13122,
+    "stop": "stop",
+    "zratio": 0.216,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 143,
+    "domain": "Physics",
+    "correct": true,
+    "out": 8171,
+    "stop": "stop",
+    "zratio": 0.273,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 144,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 6361,
+    "stop": "stop",
+    "zratio": 0.292,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 145,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 30724,
+    "stop": "stop",
+    "zratio": 0.186,
+    "maxline": 7,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 147,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 29886,
+    "stop": "stop",
+    "zratio": 0.243,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 149,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 22323,
+    "stop": "stop",
+    "zratio": 0.255,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 150,
+    "domain": "Physics",
+    "correct": true,
+    "out": 5353,
+    "stop": "stop",
+    "zratio": 0.279,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 152,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5617,
+    "stop": "stop",
+    "zratio": 0.287,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 154,
+    "domain": "Physics",
+    "correct": true,
+    "out": 6772,
+    "stop": "stop",
+    "zratio": 0.25,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 161,
+    "domain": "Physics",
+    "correct": true,
+    "out": 7166,
+    "stop": "stop",
+    "zratio": 0.295,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 164,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 5948,
+    "stop": "stop",
+    "zratio": 0.29,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 168,
+    "domain": "Physics",
+    "correct": true,
+    "out": 6745,
+    "stop": "stop",
+    "zratio": 0.285,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 169,
+    "domain": "Physics",
+    "correct": true,
+    "out": 4857,
+    "stop": "stop",
+    "zratio": 0.241,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 175,
+    "domain": "Physics",
+    "correct": true,
+    "out": 5557,
+    "stop": "stop",
+    "zratio": 0.296,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 176,
+    "domain": "Physics",
+    "correct": true,
+    "out": 6617,
+    "stop": "stop",
+    "zratio": 0.296,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 178,
+    "domain": "Physics",
+    "correct": true,
+    "out": 10182,
+    "stop": "stop",
+    "zratio": 0.285,
+    "maxline": 6,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 179,
+    "domain": "Physics",
+    "correct": true,
+    "out": 11494,
+    "stop": "stop",
+    "zratio": 0.298,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 183,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 11732,
+    "stop": "stop",
+    "zratio": 0.274,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 185,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 10564,
+    "stop": "stop",
+    "zratio": 0.262,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 189,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5949,
+    "stop": "stop",
+    "zratio": 0.288,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 195,
+    "domain": "Physics",
+    "correct": true,
+    "out": 4315,
+    "stop": "stop",
+    "zratio": 0.298,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   }
+  ],
+  "q27b": [
+   {
+    "idx": 1,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 9184,
+    "stop": "stop",
+    "zratio": 0.279,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 3,
+    "domain": "Physics",
+    "correct": true,
+    "out": 3407,
+    "stop": "stop",
+    "zratio": 0.278,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 8,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 31049,
+    "stop": "stop",
+    "zratio": 0.28,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 10,
+    "domain": "Biology",
+    "correct": true,
+    "out": 10644,
+    "stop": "stop",
+    "zratio": 0.239,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 12,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.294,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 13,
+    "domain": "Biology",
+    "correct": true,
+    "out": 7982,
+    "stop": "stop",
+    "zratio": 0.266,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 15,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.287,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 18,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 21607,
+    "stop": "stop",
+    "zratio": 0.26,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 21,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 8086,
+    "stop": "stop",
+    "zratio": 0.277,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 22,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 17178,
+    "stop": "stop",
+    "zratio": 0.287,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 23,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 18575,
+    "stop": "stop",
+    "zratio": 0.257,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 24,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 9518,
+    "stop": "stop",
+    "zratio": 0.298,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 25,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 15495,
+    "stop": "stop",
+    "zratio": 0.292,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 30,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 30252,
+    "stop": "stop",
+    "zratio": 0.282,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 32,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.264,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 33,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 14111,
+    "stop": "stop",
+    "zratio": 0.275,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 37,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 10253,
+    "stop": "stop",
+    "zratio": 0.278,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 42,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 10127,
+    "stop": "stop",
+    "zratio": 0.29,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 43,
+    "domain": "Biology",
+    "correct": true,
+    "out": 4091,
+    "stop": "stop",
+    "zratio": 0.272,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 45,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 17590,
+    "stop": "stop",
+    "zratio": 0.297,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 47,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 18434,
+    "stop": "stop",
+    "zratio": 0.286,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 48,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.275,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 53,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 11841,
+    "stop": "stop",
+    "zratio": 0.297,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 60,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 7669,
+    "stop": "stop",
+    "zratio": 0.295,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 61,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 23069,
+    "stop": "stop",
+    "zratio": 0.27,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 69,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.288,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 71,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.273,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 74,
+    "domain": "Biology",
+    "correct": true,
+    "out": 10213,
+    "stop": "stop",
+    "zratio": 0.263,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 75,
+    "domain": "Biology",
+    "correct": true,
+    "out": 19060,
+    "stop": "stop",
+    "zratio": 0.251,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 76,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.276,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 81,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.291,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 85,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 27948,
+    "stop": "stop",
+    "zratio": 0.284,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 86,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 9223,
+    "stop": "stop",
+    "zratio": 0.291,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 88,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.271,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 89,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 17090,
+    "stop": "stop",
+    "zratio": 0.299,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 90,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.287,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 93,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 15759,
+    "stop": "stop",
+    "zratio": 0.289,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 94,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.282,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 97,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.24,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 99,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 15258,
+    "stop": "stop",
+    "zratio": 0.283,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 100,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 16169,
+    "stop": "stop",
+    "zratio": 0.275,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 101,
+    "domain": "Biology",
+    "correct": true,
+    "out": 30693,
+    "stop": "stop",
+    "zratio": 0.239,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 102,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.285,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 105,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 8708,
+    "stop": "stop",
+    "zratio": 0.283,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 110,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 16302,
+    "stop": "stop",
+    "zratio": 0.277,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 118,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.277,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 121,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 31511,
+    "stop": "stop",
+    "zratio": 0.288,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 125,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 17499,
+    "stop": "stop",
+    "zratio": 0.282,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 126,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 32562,
+    "stop": "stop",
+    "zratio": 0.293,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 127,
+    "domain": "Biology",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.246,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 130,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.264,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 138,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 29793,
+    "stop": "stop",
+    "zratio": 0.263,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 139,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 17384,
+    "stop": "stop",
+    "zratio": 0.254,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 142,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 13203,
+    "stop": "stop",
+    "zratio": 0.281,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 145,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.279,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 147,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.29,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 148,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5122,
+    "stop": "stop",
+    "zratio": 0.294,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 152,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 10650,
+    "stop": "stop",
+    "zratio": 0.282,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 157,
+    "domain": "Biology",
+    "correct": true,
+    "out": 10709,
+    "stop": "stop",
+    "zratio": 0.233,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 160,
+    "domain": "Physics",
+    "correct": false,
+    "out": 25403,
+    "stop": "stop",
+    "zratio": 0.291,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 164,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.221,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 168,
+    "domain": "Physics",
+    "correct": true,
+    "out": 19404,
+    "stop": "stop",
+    "zratio": 0.268,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 174,
+    "domain": "Physics",
+    "correct": true,
+    "out": 8504,
+    "stop": "stop",
+    "zratio": 0.297,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 183,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 16830,
+    "stop": "stop",
+    "zratio": 0.294,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 185,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.292,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 192,
+    "domain": "Physics",
+    "correct": true,
+    "out": 5782,
+    "stop": "stop",
+    "zratio": 0.269,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   }
+  ],
+  "ds4_exp": [
+   {
+    "idx": 1,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 2316,
+    "stop": "stop",
+    "zratio": 0.27,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 7,
+    "domain": "Biology",
+    "correct": true,
+    "out": 7300,
+    "stop": "stop",
+    "zratio": 0.26,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 8,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 7219,
+    "stop": "stop",
+    "zratio": 0.265,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 10,
+    "domain": "Biology",
+    "correct": false,
+    "out": 11597,
+    "stop": "stop",
+    "zratio": 0.165,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 12,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.246,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 15,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 11040,
+    "stop": "stop",
+    "zratio": 0.262,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 18,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 10756,
+    "stop": "stop",
+    "zratio": 0.214,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 22,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 6230,
+    "stop": "stop",
+    "zratio": 0.271,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 25,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 17833,
+    "stop": "stop",
+    "zratio": 0.225,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 27,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 9461,
+    "stop": "stop",
+    "zratio": 0.266,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 28,
+    "domain": "Biology",
+    "correct": true,
+    "out": 6681,
+    "stop": "stop",
+    "zratio": 0.275,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 29,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 3683,
+    "stop": "stop",
+    "zratio": 0.254,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 30,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 5259,
+    "stop": "stop",
+    "zratio": 0.295,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 31,
+    "domain": "Physics",
+    "correct": true,
+    "out": 7841,
+    "stop": "stop",
+    "zratio": 0.289,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 32,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 29201,
+    "stop": "stop",
+    "zratio": 0.246,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 33,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 8464,
+    "stop": "stop",
+    "zratio": 0.256,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 36,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 6164,
+    "stop": "stop",
+    "zratio": 0.276,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 42,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5765,
+    "stop": "stop",
+    "zratio": 0.276,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 45,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 4006,
+    "stop": "stop",
+    "zratio": 0.287,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 47,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 15719,
+    "stop": "stop",
+    "zratio": 0.239,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 48,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.209,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 60,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 4228,
+    "stop": "stop",
+    "zratio": 0.263,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 61,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5644,
+    "stop": "stop",
+    "zratio": 0.241,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 62,
+    "domain": "Physics",
+    "correct": true,
+    "out": 8309,
+    "stop": "stop",
+    "zratio": 0.258,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 64,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 16496,
+    "stop": "stop",
+    "zratio": 0.25,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 65,
+    "domain": "Physics",
+    "correct": false,
+    "out": 7209,
+    "stop": "stop",
+    "zratio": 0.195,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 69,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 21836,
+    "stop": "stop",
+    "zratio": 0.22,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 71,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 21407,
+    "stop": "stop",
+    "zratio": 0.225,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 75,
+    "domain": "Biology",
+    "correct": true,
+    "out": 6149,
+    "stop": "stop",
+    "zratio": 0.195,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 76,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 21871,
+    "stop": "stop",
+    "zratio": 0.213,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 78,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 7677,
+    "stop": "stop",
+    "zratio": 0.285,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 79,
+    "domain": "Biology",
+    "correct": true,
+    "out": 12275,
+    "stop": "stop",
+    "zratio": 0.293,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 81,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.245,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 85,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 10651,
+    "stop": "stop",
+    "zratio": 0.25,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 86,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 2609,
+    "stop": "stop",
+    "zratio": 0.295,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 88,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.216,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 89,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 25268,
+    "stop": "stop",
+    "zratio": 0.251,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 90,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 21768,
+    "stop": "stop",
+    "zratio": 0.228,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 93,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 21348,
+    "stop": "stop",
+    "zratio": 0.246,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 94,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 28897,
+    "stop": "stop",
+    "zratio": 0.236,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 97,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 6966,
+    "stop": "stop",
+    "zratio": 0.24,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 99,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5253,
+    "stop": "stop",
+    "zratio": 0.262,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 100,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 1894,
+    "stop": "stop",
+    "zratio": 0.263,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 101,
+    "domain": "Biology",
+    "correct": true,
+    "out": 3666,
+    "stop": "stop",
+    "zratio": 0.251,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 102,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 16434,
+    "stop": "stop",
+    "zratio": 0.247,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 108,
+    "domain": "Physics",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.132,
+    "maxline": 10,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 110,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 4087,
+    "stop": "stop",
+    "zratio": 0.292,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 115,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.252,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 118,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 13587,
+    "stop": "stop",
+    "zratio": 0.234,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 120,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 11335,
+    "stop": "stop",
+    "zratio": 0.286,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 121,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 25671,
+    "stop": "stop",
+    "zratio": 0.224,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 125,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 2852,
+    "stop": "stop",
+    "zratio": 0.3,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 126,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 25323,
+    "stop": "stop",
+    "zratio": 0.235,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 127,
+    "domain": "Biology",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.119,
+    "maxline": 62,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 130,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 20526,
+    "stop": "stop",
+    "zratio": 0.236,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 131,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 7032,
+    "stop": "stop",
+    "zratio": 0.276,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 138,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 3511,
+    "stop": "stop",
+    "zratio": 0.264,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 139,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 2419,
+    "stop": "stop",
+    "zratio": 0.237,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 140,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5483,
+    "stop": "stop",
+    "zratio": 0.279,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 142,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 6212,
+    "stop": "stop",
+    "zratio": 0.253,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 145,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 24197,
+    "stop": "stop",
+    "zratio": 0.231,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 147,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.078,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 152,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 3002,
+    "stop": "stop",
+    "zratio": 0.296,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 155,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 7360,
+    "stop": "stop",
+    "zratio": 0.262,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 157,
+    "domain": "Biology",
+    "correct": true,
+    "out": 2615,
+    "stop": "stop",
+    "zratio": 0.193,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 160,
+    "domain": "Physics",
+    "correct": false,
+    "out": 10915,
+    "stop": "stop",
+    "zratio": 0.222,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 164,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 3172,
+    "stop": "stop",
+    "zratio": 0.221,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 168,
+    "domain": "Physics",
+    "correct": true,
+    "out": 1584,
+    "stop": "stop",
+    "zratio": 0.287,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 170,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 11384,
+    "stop": "stop",
+    "zratio": 0.251,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 180,
+    "domain": "Physics",
+    "correct": true,
+    "out": 7614,
+    "stop": "stop",
+    "zratio": 0.262,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 183,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 6486,
+    "stop": "stop",
+    "zratio": 0.283,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 185,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.247,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 190,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 4312,
+    "stop": "stop",
+    "zratio": 0.289,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 191,
+    "domain": "Physics",
+    "correct": true,
+    "out": 2708,
+    "stop": "stop",
+    "zratio": 0.266,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   }
+  ],
+  "ds4_native": [
+   {
+    "idx": 7,
+    "domain": "Biology",
+    "correct": true,
+    "out": 12967,
+    "stop": "stop",
+    "zratio": 0.233,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 8,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.162,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 10,
+    "domain": "Biology",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.055,
+    "maxline": 32,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 12,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 27585,
+    "stop": "stop",
+    "zratio": 0.244,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 13,
+    "domain": "Biology",
+    "correct": true,
+    "out": 2893,
+    "stop": "stop",
+    "zratio": 0.267,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 15,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 13996,
+    "stop": "stop",
+    "zratio": 0.261,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 18,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 13217,
+    "stop": "stop",
+    "zratio": 0.215,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 22,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 4809,
+    "stop": "stop",
+    "zratio": 0.29,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 25,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 6356,
+    "stop": "stop",
+    "zratio": 0.276,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 26,
+    "domain": "Biology",
+    "correct": true,
+    "out": 6642,
+    "stop": "stop",
+    "zratio": 0.16,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 27,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 6402,
+    "stop": "stop",
+    "zratio": 0.284,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 28,
+    "domain": "Biology",
+    "correct": true,
+    "out": 4781,
+    "stop": "stop",
+    "zratio": 0.272,
+    "maxline": 5,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 29,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 4797,
+    "stop": "stop",
+    "zratio": 0.239,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 30,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 5828,
+    "stop": "stop",
+    "zratio": 0.281,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 31,
+    "domain": "Physics",
+    "correct": true,
+    "out": 10593,
+    "stop": "stop",
+    "zratio": 0.284,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 32,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 29508,
+    "stop": "stop",
+    "zratio": 0.247,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 33,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 10940,
+    "stop": "stop",
+    "zratio": 0.236,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 37,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.053,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 47,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 13430,
+    "stop": "stop",
+    "zratio": 0.236,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 48,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 12368,
+    "stop": "stop",
+    "zratio": 0.238,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 51,
+    "domain": "Physics",
+    "correct": true,
+    "out": 3383,
+    "stop": "stop",
+    "zratio": 0.297,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 53,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 19940,
+    "stop": "stop",
+    "zratio": 0.219,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 55,
+    "domain": "Physics",
+    "correct": true,
+    "out": 16920,
+    "stop": "stop",
+    "zratio": 0.257,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 60,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 3348,
+    "stop": "stop",
+    "zratio": 0.287,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 61,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5627,
+    "stop": "stop",
+    "zratio": 0.249,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 64,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 13721,
+    "stop": "stop",
+    "zratio": 0.243,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 69,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 26934,
+    "stop": "stop",
+    "zratio": 0.224,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 71,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 17838,
+    "stop": "stop",
+    "zratio": 0.242,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 75,
+    "domain": "Biology",
+    "correct": true,
+    "out": 3336,
+    "stop": "stop",
+    "zratio": 0.201,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 76,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 2608,
+    "stop": "stop",
+    "zratio": 0.289,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 78,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 10836,
+    "stop": "stop",
+    "zratio": 0.255,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 79,
+    "domain": "Biology",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.164,
+    "maxline": 156,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 81,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.221,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 85,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 5547,
+    "stop": "stop",
+    "zratio": 0.269,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 88,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.201,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 89,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 9856,
+    "stop": "stop",
+    "zratio": 0.281,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 90,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 19083,
+    "stop": "stop",
+    "zratio": 0.222,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 93,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 15521,
+    "stop": "stop",
+    "zratio": 0.23,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 94,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.151,
+    "maxline": 11,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 97,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 4221,
+    "stop": "stop",
+    "zratio": 0.269,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 99,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 3676,
+    "stop": "stop",
+    "zratio": 0.274,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 100,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5143,
+    "stop": "stop",
+    "zratio": 0.223,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 101,
+    "domain": "Biology",
+    "correct": true,
+    "out": 2339,
+    "stop": "stop",
+    "zratio": 0.289,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 102,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.195,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 108,
+    "domain": "Physics",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.13,
+    "maxline": 4,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 110,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 6080,
+    "stop": "stop",
+    "zratio": 0.272,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 115,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 30623,
+    "stop": "stop",
+    "zratio": 0.256,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 118,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 11125,
+    "stop": "stop",
+    "zratio": 0.251,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 120,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 14919,
+    "stop": "stop",
+    "zratio": 0.274,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 121,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 23016,
+    "stop": "stop",
+    "zratio": 0.228,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 126,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 22890,
+    "stop": "stop",
+    "zratio": 0.252,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 127,
+    "domain": "Biology",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.047,
+    "maxline": 96,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 128,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 19672,
+    "stop": "stop",
+    "zratio": 0.228,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 130,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 8220,
+    "stop": "stop",
+    "zratio": 0.26,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 131,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 20036,
+    "stop": "stop",
+    "zratio": 0.239,
+    "maxline": 3,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 138,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 8102,
+    "stop": "stop",
+    "zratio": 0.224,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 139,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 3297,
+    "stop": "stop",
+    "zratio": 0.278,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 140,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 8989,
+    "stop": "stop",
+    "zratio": 0.25,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 142,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 5740,
+    "stop": "stop",
+    "zratio": 0.26,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 145,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 27948,
+    "stop": "stop",
+    "zratio": 0.23,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 147,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.174,
+    "maxline": 9,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 152,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 3425,
+    "stop": "stop",
+    "zratio": 0.297,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 155,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 7315,
+    "stop": "stop",
+    "zratio": 0.265,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 157,
+    "domain": "Biology",
+    "correct": true,
+    "out": 2316,
+    "stop": "stop",
+    "zratio": 0.206,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 160,
+    "domain": "Physics",
+    "correct": false,
+    "out": 4313,
+    "stop": "stop",
+    "zratio": 0.26,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 164,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 10326,
+    "stop": "stop",
+    "zratio": 0.181,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 168,
+    "domain": "Physics",
+    "correct": true,
+    "out": 1694,
+    "stop": "stop",
+    "zratio": 0.277,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 170,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 9463,
+    "stop": "stop",
+    "zratio": 0.26,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 183,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 6883,
+    "stop": "stop",
+    "zratio": 0.286,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 185,
+    "domain": "Chemistry",
+    "correct": false,
+    "out": 32768,
+    "stop": "max_tokens",
+    "zratio": 0.23,
+    "maxline": 2,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 190,
+    "domain": "Chemistry",
+    "correct": true,
+    "out": 6219,
+    "stop": "stop",
+    "zratio": 0.268,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   },
+   {
+    "idx": 194,
+    "domain": "Physics",
+    "correct": true,
+    "out": 7217,
+    "stop": "stop",
+    "zratio": 0.274,
+    "maxline": 1,
+    "q": "answer the following multiple choice question. the last line of your response should be of"
+   }
+  ]
+ },
+ "universe": [
+  {
+   "idx": 0,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 1,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 2,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 3,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 4,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 5,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 6,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 7,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 8,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 9,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 10,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 11,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 12,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": true
+   },
+   "n_right": 2
+  },
+  {
+   "idx": 13,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 14,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 15,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 2
+  },
+  {
+   "idx": 16,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 17,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 0
+  },
+  {
+   "idx": 18,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 19,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 20,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 21,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 22,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 23,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 24,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 25,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 4
+  },
+  {
+   "idx": 26,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 27,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 28,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 29,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 30,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 0
+  },
+  {
+   "idx": 31,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 32,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 33,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": false,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 4
+  },
+  {
+   "idx": 34,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 35,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 36,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 4
+  },
+  {
+   "idx": 37,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": false
+   },
+   "n_right": 4
+  },
+  {
+   "idx": 38,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 39,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 40,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 41,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 42,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 43,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 44,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 45,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 46,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 47,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 48,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 2
+  },
+  {
+   "idx": 49,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 50,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 51,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 52,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 53,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 54,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 55,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 56,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 57,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 58,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 59,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 60,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 61,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 62,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 63,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 64,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 65,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 66,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 67,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 68,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 69,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 70,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 71,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": true
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 72,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 73,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 74,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 75,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 76,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 0
+  },
+  {
+   "idx": 77,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 78,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 79,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": true,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": true,
+    "ds4_native": false
+   },
+   "n_right": 2
+  },
+  {
+   "idx": 80,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 81,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 0
+  },
+  {
+   "idx": 82,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 83,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 84,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 85,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": false
+   },
+   "n_right": 2
+  },
+  {
+   "idx": 86,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 87,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 88,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 0
+  },
+  {
+   "idx": 89,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": false,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 4
+  },
+  {
+   "idx": 90,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 0
+  },
+  {
+   "idx": 91,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 92,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 93,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 94,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 1
+  },
+  {
+   "idx": 95,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 96,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 97,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 98,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 99,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 100,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 101,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 102,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": true,
+    "ds4_native": false
+   },
+   "n_right": 1
+  },
+  {
+   "idx": 103,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 104,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 105,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 106,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 0
+  },
+  {
+   "idx": 107,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 108,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 109,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": false,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 4
+  },
+  {
+   "idx": 110,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 111,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 112,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 113,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 0
+  },
+  {
+   "idx": 114,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 115,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": true
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 116,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 117,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 118,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": true,
+    "ds4_native": false
+   },
+   "n_right": 1
+  },
+  {
+   "idx": 119,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 120,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 121,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": true,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 1
+  },
+  {
+   "idx": 122,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 123,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 124,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 125,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 126,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": false,
+    "ds4_native": true
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 127,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 0
+  },
+  {
+   "idx": 128,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 129,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 2
+  },
+  {
+   "idx": 130,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 131,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 4
+  },
+  {
+   "idx": 132,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 133,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 134,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 135,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 136,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 137,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 138,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 139,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 140,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": false
+   },
+   "n_right": 4
+  },
+  {
+   "idx": 141,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 142,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": false,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 4
+  },
+  {
+   "idx": 143,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 144,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 145,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 2
+  },
+  {
+   "idx": 146,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 147,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 0
+  },
+  {
+   "idx": 148,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 149,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 150,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 151,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 152,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 153,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 154,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 155,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 156,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 157,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": false,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 4
+  },
+  {
+   "idx": 158,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": false,
+    "ds4_native": true
+   },
+   "n_right": 4
+  },
+  {
+   "idx": 159,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 160,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 0
+  },
+  {
+   "idx": 161,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 162,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 2
+  },
+  {
+   "idx": 163,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 164,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 2
+  },
+  {
+   "idx": 165,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 166,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 167,
+   "domain": "Biology",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 0
+  },
+  {
+   "idx": 168,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 169,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 170,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 171,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 172,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 173,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 174,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": false,
+    "q35_native": false,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 3
+  },
+  {
+   "idx": 175,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 176,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 177,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 178,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": false,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 4
+  },
+  {
+   "idx": 179,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 180,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 181,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 182,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 183,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 184,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 185,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": false,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 1
+  },
+  {
+   "idx": 186,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": false,
+    "ds4_exp": false,
+    "ds4_native": false
+   },
+   "n_right": 2
+  },
+  {
+   "idx": 187,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 188,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 189,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 190,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 191,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 192,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": false,
+    "ds4_native": true
+   },
+   "n_right": 4
+  },
+  {
+   "idx": 193,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 194,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 195,
+   "domain": "Physics",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 196,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  },
+  {
+   "idx": 197,
+   "domain": "Chemistry",
+   "states": {
+    "q35_exp": true,
+    "q35_native": true,
+    "q27b": true,
+    "ds4_exp": true,
+    "ds4_native": true
+   },
+   "n_right": 5
+  }
+ ]
+}

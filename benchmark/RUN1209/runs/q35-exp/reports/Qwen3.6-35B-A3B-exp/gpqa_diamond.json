@@ -1,0 +1,280 @@
+{
+    "schema_version": 2,
+    "name": "Qwen3.6-35B-A3B-exp@gpqa_diamond",
+    "dataset_name": "gpqa_diamond",
+    "dataset_pretty_name": "GPQA-Diamond",
+    "dataset_description": "\n## Overview\n\nGPQA (Graduate-Level Google-Proof Q&A) Diamond is a challenging benchmark of 198 multiple-choice questions written by domain experts in biology, physics, and chemistry. The questions are designed to be extremely difficult, requiring PhD-level expertise to answer correctly.\n\n## Task Description\n\n- **Task Type**: Expert-Level Multiple-Choice Q&A\n- **Input**: Graduate-level science question with 4 choices\n- **Output**: Single correct answer letter (A, B, C, or D)\n- **Domains**: Biology, Physics, Chemistry\n\n## Key Features\n\n- 198 questions written and validated by domain PhD experts\n- Questions are \"Google-proof\" - cannot be easily looked up\n- Designed to test deep domain knowledge and reasoning\n- Diamond subset represents the highest quality questions\n- Average human expert accuracy ~65%, non-expert ~34%\n\n## Evaluation Notes\n\n- Default configuration uses **0-shot** or **5-shot** evaluation\n- Supports Chain-of-Thought (CoT) prompting for improved reasoning\n- Answer choices are randomly shuffled during evaluation\n- Only uses train split (validation set is private)\n- Challenging benchmark for measuring expert-level reasoning\n",
+    "model_name": "Qwen3.6-35B-A3B-exp",
+    "metrics": [
+        {
+            "identity": {
+                "name": "accuracy",
+                "aggregation": "mean",
+                "dimensions": {}
+            },
+            "legacy_name": null,
+            "num": 198,
+            "score": 0.8434,
+            "macro_score": 0.8434,
+            "categories": [
+                {
+                    "name": [
+                        "default"
+                    ],
+                    "num": 198,
+                    "score": 0.8434,
+                    "macro_score": 0.8434,
+                    "subsets": [
+                        {
+                            "name": "default",
+                            "score": 0.8434,
+                            "num": 198,
+                            "is_aggregate": false
+                        }
+                    ]
+                }
+            ],
+            "semantics": {
+                "semantic_id": "quality.accuracy.ratio",
+                "metric_name": "Accuracy",
+                "display_name": null,
+                "kind": "quality",
+                "direction": "higher_is_better",
+                "raw_unit": null,
+                "value_range": {
+                    "min": 0.0,
+                    "max": 1.0
+                },
+                "display_kind": "percent",
+                "display_multiplier": 100.0,
+                "display_unit": "%",
+                "display_precision": 1
+            }
+        }
+    ],
+    "analysis": "N/A",
+    "perf_metrics": {
+        "summary": {
+            "n_samples": 198,
+            "latency": {
+                "mean": 91.35939,
+                "std": 78.161219,
+                "min": 21.914853,
+                "25%": 44.911791,
+                "50%": 63.672078,
+                "75%": 99.293479,
+                "90%": 200.496152,
+                "99%": 396.444239,
+                "max": 398.340208
+            },
+            "throughput": {
+                "avg_output_tps": 84.69,
+                "avg_req_ps": 0.0109
+            },
+            "usage": {
+                "input_tokens": {
+                    "mean": 277.0,
+                    "std": 213.175198,
+                    "min": 102.0,
+                    "25%": 193.0,
+                    "50%": 243.5,
+                    "75%": 302.75,
+                    "90%": 401.5,
+                    "99%": 814.36,
+                    "max": 2805.0
+                },
+                "output_tokens": {
+                    "mean": 7737.545455,
+                    "std": 6511.068715,
+                    "min": 1783.0,
+                    "25%": 3792.5,
+                    "50%": 5448.0,
+                    "75%": 8445.5,
+                    "90%": 16747.5,
+                    "99%": 32768.0,
+                    "max": 32768.0
+                },
+                "total_tokens": {
+                    "mean": 8014.545455,
+                    "std": 6540.883497,
+                    "min": 1925.0,
+                    "25%": 4080.5,
+                    "50%": 5694.5,
+                    "75%": 8701.0,
+                    "90%": 16942.9,
+                    "99%": 33042.17,
+                    "max": 33102.0
+                },
+                "total_input_tokens": 54846,
+                "total_output_tokens": 1532034,
+                "total_tokens_count": 1586880
+            },
+            "ttft": {
+                "mean": 0.351975,
+                "std": 0.098694,
+                "min": 0.216489,
+                "25%": 0.272378,
+                "50%": 0.348636,
+                "75%": 0.394797,
+                "90%": 0.462009,
+                "99%": 0.662473,
+                "max": 0.918066
+            },
+            "tpot": {
+                "mean": 0.011701,
+                "std": 0.000464,
+                "min": 0.010768,
+                "25%": 0.011406,
+                "50%": 0.011605,
+                "75%": 0.011955,
+                "90%": 0.01225,
+                "99%": 0.012633,
+                "max": 0.015854
+            }
+        },
+        "coverage": {
+            "requests_with_metrics": 198,
+            "total_requests": 198
+        },
+        "metric_semantics": {
+            "n_samples": {
+                "semantic_id": "diagnostic.count.items",
+                "metric_name": "Samples",
+                "display_name": null,
+                "kind": "diagnostic",
+                "direction": "none",
+                "raw_unit": null,
+                "value_range": null,
+                "display_kind": "number",
+                "display_multiplier": null,
+                "display_unit": null,
+                "display_precision": 0
+            },
+            "latency": {
+                "semantic_id": "perf.latency.seconds",
+                "metric_name": "Latency",
+                "display_name": null,
+                "kind": "quality",
+                "direction": "lower_is_better",
+                "raw_unit": "s",
+                "value_range": null,
+                "display_kind": "number",
+                "display_multiplier": null,
+                "display_unit": "s",
+                "display_precision": 3
+            },
+            "ttft": {
+                "semantic_id": "perf.latency.seconds",
+                "metric_name": "TTFT",
+                "display_name": null,
+                "kind": "quality",
+                "direction": "lower_is_better",
+                "raw_unit": "s",
+                "value_range": null,
+                "display_kind": "number",
+                "display_multiplier": 1000.0,
+                "display_unit": "ms",
+                "display_precision": 1
+            },
+            "tpot": {
+                "semantic_id": "perf.latency.seconds",
+                "metric_name": "TPOT",
+                "display_name": null,
+                "kind": "quality",
+                "direction": "lower_is_better",
+                "raw_unit": "s",
+                "value_range": null,
+                "display_kind": "number",
+                "display_multiplier": 1000.0,
+                "display_unit": "ms",
+                "display_precision": 1
+            },
+            "throughput.avg_output_tps": {
+                "semantic_id": "perf.throughput.tokens_per_second",
+                "metric_name": "Output Throughput",
+                "display_name": null,
+                "kind": "quality",
+                "direction": "higher_is_better",
+                "raw_unit": "tok/s",
+                "value_range": null,
+                "display_kind": "number",
+                "display_multiplier": null,
+                "display_unit": "tok/s",
+                "display_precision": 2
+            },
+            "throughput.avg_req_ps": {
+                "semantic_id": "perf.throughput.requests_per_second",
+                "metric_name": "Request Throughput",
+                "display_name": null,
+                "kind": "quality",
+                "direction": "higher_is_better",
+                "raw_unit": "req/s",
+                "value_range": null,
+                "display_kind": "number",
+                "display_multiplier": null,
+                "display_unit": "req/s",
+                "display_precision": 2
+            },
+            "usage.input_tokens": {
+                "semantic_id": "diagnostic.count.items",
+                "metric_name": "Input Tokens",
+                "display_name": null,
+                "kind": "diagnostic",
+                "direction": "none",
+                "raw_unit": null,
+                "value_range": null,
+                "display_kind": "number",
+                "display_multiplier": null,
+                "display_unit": null,
+                "display_precision": 0
+            },
+            "usage.output_tokens": {
+                "semantic_id": "diagnostic.count.items",
+                "metric_name": "Output Tokens",
+                "display_name": null,
+                "kind": "diagnostic",
+                "direction": "none",
+                "raw_unit": null,
+                "value_range": null,
+                "display_kind": "number",
+                "display_multiplier": null,
+                "display_unit": null,
+                "display_precision": 0
+            },
+            "usage.total_tokens": {
+                "semantic_id": "diagnostic.count.items",
+                "metric_name": "Total Tokens",
+                "display_name": null,
+                "kind": "diagnostic",
+                "direction": "none",
+                "raw_unit": null,
+                "value_range": null,
+                "display_kind": "number",
+                "display_multiplier": null,
+                "display_unit": null,
+                "display_precision": 0
+            }
+        }
+    },
+    "primary_metric_identity": {
+        "name": "accuracy",
+        "aggregation": "mean",
+        "dimensions": {}
+    },
+    "primary_metric_unavailable_reason": null,
+    "judge_summary": null,
+    "execution_summary": {
+        "requested": 198,
+        "succeeded": 198,
+        "errored": 0,
+        "incomplete": false,
+        "subsets": {
+            "default": {
+                "requested": 198,
+                "succeeded": 198,
+                "errored": 0
+            }
+        }
+    },
+    "num": 198
+}

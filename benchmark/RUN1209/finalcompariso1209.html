@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appendix — RUN1209 Final Comparative Report: MoE Expert Expansion on GPQA-Diamond</title>
+<style>
+  :root{
+    --ink:#1a1d21; --muted:#5c646d; --line:#d8dde3; --soft:#f4f6f8;
+    --accent:#0f4c81; --pass:#1a7f37; --warn:#9a6700; --fail:#cf222e;
+    --paper:#ffffff;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; padding:0; color:var(--ink); background:var(--paper);
+    font:16px/1.62 "Source Serif 4", Georgia, "Times New Roman", serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:920px; margin:0 auto; padding:48px 56px 96px}
+  header.doc{border-bottom:3px double var(--ink); padding-bottom:20px; margin-bottom:28px}
+  .kicker{
+    font-family:"Helvetica Neue",Arial,sans-serif; font-size:.72rem; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--accent); font-weight:700; margin-bottom:10px;
+  }
+  h1{font-size:1.9rem; line-height:1.22; margin:0 0 12px; font-weight:700}
+  .subtitle{font-size:1.02rem; color:var(--muted); margin:0 0 16px; font-style:italic}
+  .metabar{
+    font-family:"Helvetica Neue",Arial,sans-serif; font-size:.8rem; color:var(--muted);
+    display:flex; flex-wrap:wrap; gap:6px 18px; border-top:1px solid var(--line); padding-top:12px;
+  }
+  .metabar b{color:var(--ink); font-weight:600}
+
+  .disclaimer{
+    border:1px solid #e3d2a8; border-left:5px solid var(--warn); background:#fdf9ee;
+    padding:18px 22px; margin:26px 0; border-radius:3px;
+  }
+  .disclaimer h2{margin:0 0 10px; font-size:1.05rem; color:var(--warn)}
+  .provenance{
+    border:1px solid var(--line); border-left:5px solid var(--accent); background:var(--soft);
+    padding:14px 22px; margin:22px 0; border-radius:3px; font-size:.93rem;
+  }
+  .provenance b{color:var(--accent)}
+
+  h2.sec{
+    font-family:"Helvetica Neue",Arial,sans-serif; font-size:1.15rem; margin:52px 0 14px;
+    padding:10px 0; border-top:2px solid var(--ink); border-bottom:1px solid var(--line);
+    letter-spacing:.02em;
+  }
+  h2.sec .no{color:var(--accent); margin-right:10px}
+  h3{font-family:"Helvetica Neue",Arial,sans-serif; font-size:.98rem; margin:30px 0 8px; letter-spacing:.01em}
+  h3 .no{color:var(--accent); margin-right:8px}
+  p{margin:10px 0; text-align:justify}
+  ul,ol{margin:10px 0 10px 4px; padding-left:22px}
+  li{margin:5px 0}
+
+  table{width:100%; border-collapse:collapse; margin:14px 0 6px; font-size:.86rem;
+        font-family:"Helvetica Neue",Arial,sans-serif}
+  caption{caption-side:top; text-align:left; font-size:.78rem; color:var(--muted);
+          padding:0 0 6px; font-style:italic}
+  th{font-weight:700; border-top:2px solid var(--ink); border-bottom:1px solid var(--ink);
+     padding:6px 8px; text-align:left; background:#fbfcfd}
+  td{border-bottom:1px solid var(--line); padding:5px 8px}
+  tr:last-child td{border-bottom:2px solid var(--ink)}
+  td.n,th.n{text-align:right; font-variant-numeric:tabular-nums}
+  tbody tr:nth-child(even){background:#fafbfc}
+  .best{color:var(--pass); font-weight:700}
+  .worst{color:var(--fail)}
+  .delta-pos{color:var(--pass); font-weight:600}
+  .delta-neg{color:var(--fail); font-weight:600}
+
+  .badge{display:inline-block; font-family:"Helvetica Neue",Arial,sans-serif; font-size:.7rem;
+         font-weight:700; letter-spacing:.05em; padding:2px 8px; border-radius:10px; vertical-align:1px}
+  .badge.pass{background:#e6f4ea; color:var(--pass)}
+  .badge.wash{background:#fff3d6; color:var(--warn)}
+  .badge.neg{background:#fdebea; color:var(--fail)}
+
+  .barrow{display:flex; align-items:center; gap:10px; margin:4px 0;
+          font-family:"Helvetica Neue",Arial,sans-serif; font-size:.8rem}
+  .barrow .lbl{width:210px; flex:none; color:var(--ink)}
+  .barrow .track{flex:1; background:var(--soft); border-radius:2px; height:16px; position:relative}
+  .barrow .fill{height:100%; background:var(--accent); border-radius:2px; opacity:.85}
+  .barrow .fill.alt{background:#6b8aa8}
+  .barrow .val{width:64px; flex:none; text-align:right; font-variant-numeric:tabular-nums; font-weight:600}
+
+  .callout{background:var(--soft); border:1px solid var(--line); border-radius:3px;
+           padding:12px 18px; margin:16px 0; font-size:.95rem}
+  .callout .tag{font-family:"Helvetica Neue",Arial,sans-serif; font-size:.7rem; font-weight:700;
+                letter-spacing:.1em; text-transform:uppercase; color:var(--accent); display:block; margin-bottom:6px}
+  .example{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.8rem;
+           background:#f6f8fa; border:1px solid var(--line); border-radius:3px; padding:10px 14px;
+           margin:10px 0; white-space:pre-wrap}
+  .footnote{font-size:.82rem; color:var(--muted); border-top:1px solid var(--line);
+            margin-top:40px; padding-top:12px}
+  code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.85em;
+       background:#f2f4f6; padding:1px 4px; border-radius:3px}
+  @media print{
+    body{font-size:11.5pt}
+    .page{padding:0; max-width:none}
+    h2.sec{page-break-after:avoid}
+    table,caption{page-break-inside:avoid}
+    .disclaimer,.provenance,.callout{page-break-inside:avoid}
+    a{color:inherit; text-decoration:none}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="doc">
+  <div class="kicker">Appendix — Final Comparative Report · to be renumbered at paper integration</div>
+  <h1>RUN1209: MoE Expert Expansion vs Native Routing on GPQA-Diamond</h1>
+  <p class="subtitle">Within-family evaluation (Qwen3.6-35B-A3B MoE, Qwen3.8-27B dense) and cross-family evaluation (DeepSeek-V4-Flash-0731)</p>
+  <div class="metabar">
+    <span><b>Dataset</b> GPQA-Diamond, 198/198 questions</span>
+    <span><b>Decoding</b> greedy (T&nbsp;=&nbsp;0)</span>
+    <span><b>Budget</b> 32,768 tokens/question</span>
+    <span><b>Serving</b> llama.cpp <code>moe-expansion</code>, batch&nbsp;4</span>
+    <span><b>Scoring</b> evalscope review, ANSWER:&nbsp;[LETTER]</span>
+    <span><b>Date</b> 2026-09-12</span>
+  </div>
+</header>
+
+<section class="disclaimer">
+  <h2>⚠ Disclaimer — purpose and limits of RUN1209</h2>
+  <p>RUN1209 is designed to compare the benefits of <b>MoE expert expansion</b> in two directions:</p>
+  <ol>
+    <li><b>Within the same model family (Qwen):</b> Qwen3.6-35B-A3B (MoE, Q8_0) with expansion vs. its own native routing, and the <b>dense</b> Qwen3.8-27B (Q8) as an in-family reference point.</li>
+    <li><b>Across model families:</b> the Qwen results against <b>DeepSeek-V4-Flash-0731</b> (UD-IQ2_M ≈ 2-bit), run with and without expansion.</li>
+  </ol>
+  <p>Within-family comparisons are strictly <b>paired</b>: same 198 questions, same prompt, same temperature, same token budget — the only changed variable is the routing configuration. Cross-family comparisons are <b>not</b> a controlled measurement of the expansion effect alone: they confound <b>quantization</b> (Qwen Q8_0 ≈ 8-bit vs. DeepSeek UD-IQ2_M ≈ 2-bit), <b>architecture/scale</b>, and <b>hardware</b> (all Qwen runs on a single RTX 5000 PRO 48&nbsp;GB; all DeepSeek runs on a 4×GPU node with 128&nbsp;GB of aggregate VRAM). Cross-family figures therefore describe <i>deployed configurations</i>, not intrinsic model quality.</p>
+</section>
+
+<section class="provenance">
+  <b>Data provenance.</b> Every figure in this appendix was recomputed directly from the raw per-question predictions and reviews of this run (<code>RunQ351209/</code>, <code>RunDS41209/</code>). The summary file <code>RUN1209_results.md</code> contains one stale row (DeepSeek paired: “85.35% vs 80.30%, net +4”); the recount of this run’s raw reviews gives <b>85.35% vs 85.35%, net 0</b> (6 expansion wins / 6 native wins / 163 both right / 23 both wrong), consistent with <code>RUN1209_stats.json</code> and with the corrected equal-budget comparison described therein. This appendix uses the raw-review recount throughout.
+</section>
+
+<!-- ==================== 1. AT A GLANCE ==================== -->
+<h2 class="sec" id="s1"><span class="no">1</span>Results at a glance</h2>
+
+<table>
+<caption>Table 1 — Headline results (198 questions, greedy, 32k budget). Best value per column in green.</caption>
+<thead><tr><th>Run</th><th>Model</th><th>Quant</th><th>Routing</th><th class="n">Accuracy</th><th class="n">Mean tokens</th><th class="n">Mean s/q</th><th class="n">tok/s</th></tr></thead>
+<tbody>
+<tr><td>ds4_exp</td><td>DeepSeek-V4-Flash-0731</td><td>UD-IQ2_M (~2-bit)</td><td><b>expanded</b> (cap 12)</td><td class="n best">85.35%</td><td class="n best">5,631</td><td class="n">346.0</td><td class="n">16.0</td></tr>
+<tr><td>ds4_native</td><td>DeepSeek-V4-Flash-0731</td><td>UD-IQ2_M (~2-bit)</td><td>native top-6</td><td class="n best">85.35%</td><td class="n">5,933</td><td class="n">324.1</td><td class="n">17.9</td></tr>
+<tr><td>q35_exp</td><td>Qwen3.6-35B-A3B</td><td>Q8_0</td><td><b>expanded</b> (cap 16)</td><td class="n">84.34%</td><td class="n">7,738</td><td class="n best">91.4</td><td class="n best">85.1</td></tr>
+<tr><td>q27b</td><td>Qwen3.8-27B (dense)</td><td>Q8_0</td><td>native</td><td class="n">83.84%</td><td class="n worst">10,911</td><td class="n worst">375.2</td><td class="n">29.0</td></tr>
+<tr><td>q35_native</td><td>Qwen3.6-35B-A3B</td><td>Q8_0</td><td>native top-8</td><td class="n worst">81.82%</td><td class="n">7,416</td><td class="n best">75.8</td><td class="n best">98.7</td></tr>
+</tbody>
+</table>
+
+<div class="barrow"><span class="lbl">ds4_exp / ds4_native</span><div class="track"><div class="fill" style="width:85.35%"></div></div><span class="val">85.35%</span></div>
+<div class="barrow"><span class="lbl">q35_exp</span><div class="track"><div class="fill alt" style="width:84.34%"></div></div><span class="val">84.34%</span></div>
+<div class="barrow"><span class="lbl">q27b (dense)</span><div class="track"><div class="fill alt" style="width:83.84%"></div></div><span class="val">83.84%</span></div>
+<div class="barrow"><span class="lbl">q35_native</span><div class="track"><div class="fill alt" style="width:81.82%"></div></div><span class="val">81.82%</span></div>
+<p style="font-size:.78rem;color:var(--muted);font-family:'Helvetica Neue',Arial,sans-serif">Accuracy, all RUN1209 configurations (bars not to scale from 0–100 baseline omitted).</p>
+
+<ul>
+  <li><b>Expert expansion is clearly positive for Qwen3.6-35B</b> (+2.52 points, paired net <b>+5</b>, 12 wins vs 7 losses) at a +4.3% total token cost (<b>+9.5% on the matched both-correct questions</b> — §3.4). It lifts the 35B MoE above the dense 27B reference (84.34% vs 83.84%) — something native routing does <i>not</i> achieve (81.82%). <span class="badge pass">PASS</span></li>
+  <li><b>Expansion is neutral for DeepSeek-V4-Flash</b> (paired net <b>0</b>, identical 85.35%), and actually used <b>5.1% fewer tokens</b> with 3 fewer truncations — a wash on quality, a small win on efficiency. <span class="badge wash">WASH</span></li>
+  <li><b>DeepSeek wins accuracy overall</b> (85.35%) despite 2-bit quantization, and is the most <b>token-efficient</b> configuration (152 correct answers per Mtok vs 109 for Qwen3.6-35B).</li>
+  <li><b>Qwen wins throughput by ~5×</b> (~85–99 tok/s vs ~16–18 tok/s), on different hardware (single 48&nbsp;GB GPU vs 4×GPU node) — see the disclaimer above.</li>
+  <li><b>Long-reasoning cliff:</b> on every configuration accuracy collapses to 27–38% beyond 20k reasoning tokens; roughly a third of that bucket never terminates (reasoning loops).</li>
+</ul>
+
+<!-- ==================== 2. CONFIG ==================== -->
+<h2 class="sec" id="s2"><span class="no">2</span>Configurations under test</h2>
+
+<table>
+<caption>Table 2 — Run matrix. All runs share the same question set, prompt template, temperature and token cap.</caption>
+<thead><tr><th>Run</th><th>Model</th><th>Quantization</th><th>Routing</th><th>Measured experts/token</th><th>Hardware</th></tr></thead>
+<tbody>
+<tr><td>q35_exp</td><td>Qwen3.6-35B-A3B</td><td>Q8_0</td><td><b>expanded</b>: N=16, thr 0.8, L25–39/40, decay 0.99→0.50</td><td>~11.6–13.9 (adaptive 4–16; native 8)</td><td>1× RTX 5000 PRO 48&nbsp;GB</td></tr>
+<tr><td>q35_native</td><td>Qwen3.6-35B-A3B</td><td>Q8_0</td><td>native top-8</td><td>8.0</td><td>1× RTX 5000 PRO 48&nbsp;GB</td></tr>
+<tr><td>q27b</td><td>Qwen3.8-27B (dense)</td><td>Q8_0</td><td>native (reference)</td><td>—</td><td>1× RTX 5000 PRO 48&nbsp;GB</td></tr>
+<tr><td>ds4_exp</td><td>DeepSeek-V4-Flash-0731</td><td>UD-IQ2_M (≈2-bit)</td><td><b>expanded</b>: N=12, thr 0.8, L28–42/43, decay 0.99→0.10</td><td>~8.6–10.0 (adaptive 3–12; native 6)</td><td>4× GPU, 128&nbsp;GB VRAM</td></tr>
+<tr><td>ds4_native</td><td>DeepSeek-V4-Flash-0731</td><td>UD-IQ2_M (≈2-bit)</td><td>native top-6</td><td>6.0</td><td>4× GPU, 128&nbsp;GB VRAM</td></tr>
+</tbody>
+</table>
+<p style="font-size:.85rem;color:var(--muted)">Common protocol: context ≈143k (Qwen) / ≈173k (DeepSeek) shared across 4 slots (~36k / ~43k per slot), <code>--parallel 4</code>, greedy decoding, <code>max_tokens = 32,768</code>, identical prompt (“Think step by step … ANSWER: [LETTER]”).</p>
+
+<!-- ==================== 3. QWEN ==================== -->
+<h2 class="sec" id="s3"><span class="no">3</span>Qwen family analysis <span style="font-weight:400;font-size:.8rem;color:var(--muted)">(HW: RTX 5000 PRO, 48 GB VRAM)</span></h2>
+
+<h3><span class="no">3.1</span>Accuracy</h3>
+<table>
+<caption>Table 3 — Qwen accuracy.</caption>
+<thead><tr><th>Configuration</th><th class="n">Correct / 198</th><th class="n">Accuracy</th></tr></thead>
+<tbody>
+<tr><td>Qwen3.6-35B <b>expanded</b> (cap 16)</td><td class="n">167</td><td class="n best">84.34%</td></tr>
+<tr><td>Qwen3.8-27B dense (reference)</td><td class="n">166</td><td class="n">83.84%</td></tr>
+<tr><td>Qwen3.6-35B native (top-8)</td><td class="n">162</td><td class="n worst">81.82%</td></tr>
+</tbody>
+</table>
+<p>The expansion lifts the MoE model by <b>+2.52 points</b> over its own native routing and makes the 35B MoE <b>overhaul the dense 27B</b> — the intended outcome of the experiment: a 35B-A3B MoE that matches or beats a 27B dense at a fraction of the per-token compute.</p>
+
+<h3><span class="no">3.2</span>Common questions (paired exp vs native)</h3>
+<table>
+<caption>Table 4 — Paired outcome counts on the shared 198 questions.</caption>
+<thead><tr><th>Pairing</th><th class="n">exp wins</th><th class="n">native wins</th><th class="n">both right</th><th class="n">both wrong</th><th class="n">net</th><th></th></tr></thead>
+<tbody>
+<tr><td>q35 <b>exp</b> vs q35 native</td><td class="n best">12</td><td class="n">7</td><td class="n">155</td><td class="n">24</td><td class="n delta-pos">+5</td><td><span class="badge pass">PASS</span></td></tr>
+<tr><td>q35 exp vs q27b dense</td><td class="n">15</td><td class="n">14</td><td class="n">152</td><td class="n">17</td><td class="n delta-pos">+1</td><td></td></tr>
+</tbody>
+</table>
+<ul>
+  <li>The two Qwen3.6-35B runs agree on <b>179/198</b> questions (155 both right + 24 both wrong); expansion changes the outcome on only <b>19 questions</b> and wins 12 of them.</li>
+  <li><b>Where the wins come from:</b> 10 of the 12 expansion wins are <b>Chemistry</b> questions (plus 1 Physics, 1 Biology); native wins back 5 Chemistry, 1 Biology, 1 Physics. The Qwen expansion effect is essentially a <b>Chemistry effect</b> (70.97% → 76.34%).</li>
+  <li>Across all five RUN1209 runs, <b>141 questions are solved by every configuration</b> and <b>12 by none</b>; only <b>45</b> are contested at all. The benchmark’s core is stable; routing tweaks move the same marginal band of hard questions.</li>
+</ul>
+
+<h3><span class="no">3.3</span>Subjects</h3>
+<table>
+<caption>Table 5 — Qwen accuracy by GPQA domain.</caption>
+<thead><tr><th>Subject</th><th class="n">n</th><th class="n">q35_exp</th><th class="n">q35_native</th><th class="n">q27b</th><th class="n">Δ exp−native</th></tr></thead>
+<tbody>
+<tr><td>Chemistry</td><td class="n">93</td><td class="n best">76.34%</td><td class="n worst">70.97%</td><td class="n">74.19%</td><td class="n delta-pos">+5.37</td></tr>
+<tr><td>Physics</td><td class="n">86</td><td class="n">95.35%</td><td class="n">95.35%</td><td class="n">95.35%</td><td class="n">0.00</td></tr>
+<tr><td>Biology</td><td class="n">19</td><td class="n">73.68%</td><td class="n">73.68%</td><td class="n best">78.95%</td><td class="n">0.00</td></tr>
+</tbody>
+</table>
+<p>Physics is saturated for the whole Qwen family (95.35% = 82/86, the same question set solved in all three runs). The dense 27B keeps a small Biology edge (+5.27 over the 35B); Chemistry — the largest and hardest subject — is exactly where wider routing pays off.</p>
+
+<h3><span class="no">3.4</span>Token generation by reasoning-length class</h3>
+<p>Overall: q35_exp mean <b>7,738</b> tokens (median 5,448, p90 16,751; total 1,532,034); q35_native mean <b>7,416</b> (median 5,403, p90 16,120; total 1,468,289); q27b mean <b>10,911</b> (median 6,758, p90 = 32,768 — cap-limited; total 2,160,347). Expansion costs <b>+4.3%</b> tokens on the paired 35B runs (+63,745 tokens total).</p>
+<table>
+<caption>Table 6 — Qwen accuracy by reasoning-length class (output tokens per question).</caption>
+<thead><tr><th>Class</th><th class="n">q35_exp n / acc</th><th class="n">q35_native n / acc</th><th class="n">q27b n / acc</th></tr></thead>
+<tbody>
+<tr><td>Brief (&lt;2k)</td><td class="n">2 / 100%</td><td class="n">5 / 100%</td><td class="n">57 / 94.74%</td></tr>
+<tr><td>Normal (2–5k)</td><td class="n">84 / 90.48%</td><td class="n">79 / 88.61%</td><td class="n">26 / 100%</td></tr>
+<tr><td>Medium (5–10k)</td><td class="n">72 / 84.72%</td><td class="n">82 / 86.59%</td><td class="n">39 / 94.87%</td></tr>
+<tr><td>Long (10–20k)</td><td class="n">27 / 85.19%</td><td class="n">20 / <span class="worst">60.00%</span></td><td class="n">37 / 97.30%</td></tr>
+<tr><td>Very long (&gt;20k)</td><td class="n">13 / <span class="worst">38.46%</span></td><td class="n">12 / <span class="worst">33.33%</span></td><td class="n">39 / <span class="worst">33.33%</span></td></tr>
+</tbody>
+</table>
+<ul>
+  <li>The <b>dense 27B is far more verbose</b> (57 brief answers vs 2–5 for the MoE; 39 answers above 20k): it reasons long by default and is nearly flawless in the 2–20k range (95–100%). Its weakness concentrates in the &gt;20k bucket (33%), which contains its 24 truncations.</li>
+  <li>The 35B MoE answers are shorter and its accuracy decays earlier along the length axis; the Long bucket contrast (85.19% exp vs <b>60.0% native</b>) shows wider routing specifically rescuing long-chain questions.</li>
+  <li>For every Qwen configuration the <b>&gt;20k class is a failure zone</b> (33–38%), dominated by non-termination (§3.5).</li>
+</ul>
+
+<div class="callout">
+  <span class="tag">Matched-question check — both-correct ties (n = 155)</span>
+  Full-set token means mix different question outcomes: the expansion’s 12 paired wins are, by construction, harder questions that require more reasoning. Restricting the comparison to the <b>155 questions both runs solved</b> removes that bias: expansion <b>6,472</b> vs native <b>5,913</b> mean tokens (<b>+9.5%</b>, +559 tokens/question) — higher than the +4.3% full-set figure — while the medians are nearly identical (<b>4,997 vs 5,065, −1.3%</b>): on half of the matched questions the expansion costs no extra tokens, and the mean gap is generated entirely in the long tail. A same-outcome restriction (179 questions) gives +7.5%, between the two.
+</div>
+
+<h3><span class="no">3.5</span>Reasoning loops</h3>
+<ul>
+  <li><b>Truncations at the 32,768 cap</b> (no final <code>ANSWER:</code> line emitted): q35_exp <b>6</b>, q35_native <b>5</b>, q27b <b>24</b>. <b>Every truncated answer was scored wrong</b> (0/N in all runs).</li>
+  <li>These are genuine <b>reasoning loops</b>, not slow-but-productive chains: the model cycles a hypothesis–contradiction pattern dozens of times. Example (q35_exp, question 131, ~100k characters of reasoning):</li>
+</ul>
+<div class="example">But 1,2,3,5 already gives 12, 6, 6.                              ×140
+This means the second compound must contribute 0 to the integrals? Impossible.  ×139
+Or the second compound contributes in a way that the total is 12, 6, 6.         ×139</div>
+<ul>
+  <li>A handful of answers terminate despite heavy repetition (compression ratio &lt; 0.20): 0 on q35_exp, 1 on q35_native, 0 on q27b — loops that stop rarely succeed.</li>
+  <li><b>Loop-prone questions are shared:</b> question 88 trips <i>all five</i> RUN1209 runs; questions 81, 127, 147 and 185 trip the 27B and both DeepSeek runs. 32 distinct questions loop in at least one configuration — the trigger is mostly <b>question-intrinsic</b>, not routing-intrinsic.</li>
+</ul>
+
+<h3><span class="no">3.6</span>Performance <span style="font-weight:400;font-size:.8rem;color:var(--muted)">(same HW: RTX 5000 PRO 48 GB, batch 4)</span></h3>
+<table>
+<caption>Table 7 — Qwen performance. Latency statistics are per-question, client-side; slot throughput from server logs.</caption>
+<thead><tr><th>Metric</th><th class="n">q35_exp</th><th class="n">q35_native</th><th class="n">q27b (dense)</th></tr></thead>
+<tbody>
+<tr><td>Mean latency / question</td><td class="n">91.4 s</td><td class="n best">75.8 s</td><td class="n worst">375.2 s</td></tr>
+<tr><td>Median latency / question</td><td class="n">63.7 s</td><td class="n">54.7 s</td><td class="n">227.7 s</td></tr>
+<tr><td>p90 latency / question</td><td class="n">201.4 s</td><td class="n">159.1 s</td><td class="n">1,125.8 s</td></tr>
+<tr><td>Mean tok/s (per question)</td><td class="n">85.1</td><td class="n best">98.7</td><td class="n worst">29.0</td></tr>
+<tr><td>Server slot throughput</td><td class="n">85.7 tok/s</td><td class="n best">99.1 tok/s</td><td class="n worst">29.6 tok/s</td></tr>
+<tr><td>TTFT (mean)</td><td class="n">0.35 s</td><td class="n best">0.36 s</td><td class="n worst">1.38 s</td></tr>
+<tr><td>Total GPU time (Σ latencies)</td><td class="n">5.02 h</td><td class="n best">4.17 h</td><td class="n worst">20.64 h</td></tr>
+<tr><td>Time per correct answer</td><td class="n">108 s</td><td class="n best">93 s</td><td class="n worst">448 s</td></tr>
+</tbody>
+</table>
+<ul>
+  <li><b>Wider routing costs ~13% throughput</b> (99.1 → 85.7 tok/s per slot; expanded layers route ~12–14 experts instead of 8). The accuracy gain is bought at +16 s mean latency and +0.85 GPU-hours.</li>
+  <li>The <b>dense 27B is ≈3× slower per token</b> (29 vs 86–99 tok/s) and ~4–5× slower per question than the 35B MoE despite fewer total parameters — the expected dense-vs-sparse active-parameter effect (~27B active vs ~3B active) — and its verbosity multiplies the gap: <b>4.1× the total GPU time</b> of q35_exp for 0.5 fewer accuracy points.</li>
+  <li><b>Matched-question latency (155 both-correct ties):</b> 76.3 s (exp) vs 59.9 s (native), <b>+27%</b>, with per-question throughput unchanged (85.1 vs 99.0 tok/s) — on identical, correctly-solved questions the latency gap is generation volume (+9.5% tokens), not slower decoding.</li>
+  <li>Best Qwen deployment in this run: <b>35B expanded for accuracy</b> (84.34%), <b>35B native for speed</b> (81.82% at 99 tok/s).</li>
+</ul>
+
+<!-- ==================== 4. DEEPSEEK ==================== -->
+<h2 class="sec" id="s4"><span class="no">4</span>DeepSeek-V4-Flash-0731 analysis <span style="font-weight:400;font-size:.8rem;color:var(--muted)">(HW: 4× GPU, 128 GB VRAM)</span></h2>
+
+<h3><span class="no">4.1</span>Accuracy</h3>
+<table>
+<caption>Table 8 — DeepSeek accuracy.</caption>
+<thead><tr><th>Configuration</th><th class="n">Correct / 198</th><th class="n">Accuracy</th></tr></thead>
+<tbody>
+<tr><td>DS4 <b>expanded</b> (cap 12)</td><td class="n">169</td><td class="n best">85.35%</td></tr>
+<tr><td>DS4 native (top-6)</td><td class="n">169</td><td class="n best">85.35%</td></tr>
+</tbody>
+</table>
+<p>Identical accuracy — and the <b>best result of the entire RUN1209 exercise</b> — achieved at 2-bit quantization.</p>
+
+<h3><span class="no">4.2</span>Common questions (paired exp vs native)</h3>
+<table>
+<caption>Table 9 — DeepSeek paired outcome counts.</caption>
+<thead><tr><th>Pairing</th><th class="n">exp wins</th><th class="n">native wins</th><th class="n">both right</th><th class="n">both wrong</th><th class="n">net</th><th></th></tr></thead>
+<tbody>
+<tr><td>ds4 <b>exp</b> vs ds4 native</td><td class="n">6</td><td class="n">6</td><td class="n">163</td><td class="n">23</td><td class="n">0</td><td><span class="badge wash">WASH</span></td></tr>
+</tbody>
+</table>
+<ul>
+  <li>The two DeepSeek runs agree on <b>186/198</b> questions (163 both right + 23 both wrong) — the tightest pairing of the exercise. Expansion reshuffles 12 marginal questions and nets zero.</li>
+  <li>Cross-family, on the same questions: ds4_exp vs q35_exp → 16 vs 14 (net +2, both right 153); ds4_exp vs q35_native → 20 vs 13 (net +7).</li>
+</ul>
+
+<h3><span class="no">4.3</span>Subjects</h3>
+<table>
+<caption>Table 10 — DeepSeek accuracy by GPQA domain.</caption>
+<thead><tr><th>Subject</th><th class="n">n</th><th class="n">ds4_exp</th><th class="n">ds4_native</th><th class="n">Δ exp−native</th></tr></thead>
+<tbody>
+<tr><td>Chemistry</td><td class="n">93</td><td class="n best">81.72%</td><td class="n">80.65%</td><td class="n delta-pos">+1.07</td></tr>
+<tr><td>Physics</td><td class="n">86</td><td class="n">90.70%</td><td class="n best">93.02%</td><td class="n delta-neg">−2.32</td></tr>
+<tr><td>Biology</td><td class="n">19</td><td class="n best">78.95%</td><td class="n">73.68%</td><td class="n delta-pos">+5.27</td></tr>
+</tbody>
+</table>
+<p>DeepSeek is the <b>best Chemistry model of the run by a wide margin</b> (81.7% vs 74–76% for Qwen) — remarkable at 2-bit — while Qwen keeps the Physics crown (95.35% vs 90.7–93.0%). The expansion’s per-subject swings (+5.3 Biology, −2.3 Physics) cancel out.</p>
+
+<h3><span class="no">4.4</span>Token generation by reasoning-length class</h3>
+<p>Overall: ds4_exp mean <b>5,631</b> tokens (median 1,580, p90 21,407); ds4_native mean <b>5,933</b> (median 1,443, p90 20,036). Expansion used <b>−5.1% tokens</b> (1,114,938 vs 1,174,801 total).</p>
+<table>
+<caption>Table 11 — DeepSeek accuracy by reasoning-length class.</caption>
+<thead><tr><th>Class</th><th class="n">ds4_exp n / acc</th><th class="n">ds4_native n / acc</th></tr></thead>
+<tbody>
+<tr><td>Brief (&lt;2k)</td><td class="n">109 / 94.50%</td><td class="n">112 / 93.75%</td></tr>
+<tr><td>Normal (2–5k)</td><td class="n">27 / 92.59%</td><td class="n">28 / 89.29%</td></tr>
+<tr><td>Medium (5–10k)</td><td class="n">27 / 88.89%</td><td class="n">20 / 85.00%</td></tr>
+<tr><td>Long (10–20k)</td><td class="n">13 / 84.62%</td><td class="n">18 / 83.33%</td></tr>
+<tr><td>Very long (&gt;20k)</td><td class="n">22 / <span class="worst">27.27%</span></td><td class="n">20 / <span class="worst">35.00%</span></td></tr>
+</tbody>
+</table>
+<div class="callout">
+  <span class="tag">Matched-question check — both-correct ties (n = 163)</span>
+  On the <b>163 questions both DeepSeek runs solved</b>: expansion <b>3,321</b> vs native <b>3,558</b> mean tokens (<b>−6.7%</b>), median 1,169 vs 1,072 — on identical, correctly-solved questions the expanded routing still spends fewer tokens than native, confirming that the full-set −5.1% is not an artifact of question mix.
+</div>
+<ul>
+  <li>DeepSeek’s reasoning profile is the mirror image of Qwen’s: <b>55% of questions answered in under 2k tokens</b> (vs 1–3% for Qwen3.6-35B), with graceful accuracy decay 94.5% → 84.6% across the first four classes.</li>
+  <li>The &gt;20k class is again the failure zone (27–35%): long-chain reasoning, not knowledge, is the universal bottleneck.</li>
+  <li>Expansion moved answers from the 10–20k class into the 5–10k class (long: 18→13; medium: 20→27) while slightly <i>more</i> answers exceeded 20k (20→22) — a mixed signal — yet total tokens still fell 5.1%: routing became more decisive on easy questions.</li>
+</ul>
+
+<h3><span class="no">4.5</span>Reasoning loops</h3>
+<ul>
+  <li><b>Truncations at the 32,768 cap:</b> ds4_exp <b>9</b>, ds4_native <b>12</b> — all scored wrong. Expansion reduced loop-induced truncations by 3.</li>
+  <li>Confirmed loops show the same signature as on Qwen; e.g. ds4_native question 79 (~85k characters of reasoning):</li>
+</ul>
+<div class="example">Maybe output = "sum of products of adjacent pairs"/2 + (sum of values)*? no.    ×156
+Maybe output = "sum of products of adjacent pairs"/2 + (sum of values)*? For
+  AGG 28+15*?=115 -&gt; ?=5                                                          ×155</div>
+<p>And ds4_native question 127 cycles a DNA-sequence comparison ~96 times; its expanded re-run escapes with a different (still loop-flavoured) strategy after 62 repetitions.</p>
+<ul>
+  <li>Finished-but-repetition-heavy answers (compression ratio &lt; 0.20) exist only on DeepSeek: 4 on ds4_exp (2 still correct), 2 on ds4_native (2 correct) — 2-bit decoding noise occasionally produces local repetition the model still escapes.</li>
+  <li>Loop-prone questions overlap heavily with the other family (88 in all five runs; 81, 127, 147, 185 in both ds4 runs + q27b): loop triggers are <b>question-intrinsic</b>, consistent across families and quants.</li>
+</ul>
+
+<h3><span class="no">4.6</span>Performance <span style="font-weight:400;font-size:.8rem;color:var(--muted)">(same HW: 4× GPU, 128 GB VRAM, batch 4)</span></h3>
+<table>
+<caption>Table 12 — DeepSeek performance.</caption>
+<thead><tr><th>Metric</th><th class="n">ds4_exp</th><th class="n">ds4_native</th></tr></thead>
+<tbody>
+<tr><td>Mean latency / question</td><td class="n">346.0 s</td><td class="n best">324.1 s</td></tr>
+<tr><td>Median latency / question</td><td class="n">97.0 s</td><td class="n">78.5 s</td></tr>
+<tr><td>p90 latency / question</td><td class="n worst">1,322.0 s</td><td class="n">1,131.5 s</td></tr>
+<tr><td>Mean tok/s (per question)</td><td class="n">16.0</td><td class="n best">17.9</td></tr>
+<tr><td>Server slot throughput</td><td class="n">16.3 tok/s</td><td class="n best">18.4 tok/s</td></tr>
+<tr><td>TTFT (mean)</td><td class="n">1.09 s</td><td class="n best">0.99 s</td></tr>
+<tr><td>Total GPU time (Σ latencies)</td><td class="n">19.03 h</td><td class="n best">17.82 h</td></tr>
+<tr><td>Time per correct answer</td><td class="n">405 s</td><td class="n best">380 s</td></tr>
+</tbody>
+</table>
+<ul>
+  <li>Expansion costs <b>~11% generation throughput</b> (18.4 → 16.3 tok/s per slot; ~8.6–10 experts routed vs 6), but 5.1% shorter answers claw most of it back: total GPU time rises only 1.2 h and time-per-correct-answer is essentially unchanged (380 → 405 s).</li>
+  <li><b>Matched-question latency (163 both-correct ties):</b> 205.5 s (exp) vs 194.9 s (native), +5.4%, with tok/s 15.9 vs 17.8 — the ~11% routing throughput cost, on a −6.7% token volume, nets out to a near-zero latency difference on matched questions.</li>
+  <li>The very high p90 (&gt;22 minutes) is driven by loop questions burning the full 32k budget — 9–12 questions per run dominate tail latency.</li>
+</ul>
+
+<!-- ==================== 5. CROSS-FAMILY ==================== -->
+<h2 class="sec" id="s5"><span class="no">5</span>Cross-family comparison: Qwen vs DeepSeek-V4-Flash</h2>
+
+<div class="callout">
+  <span class="tag">Quantization caveat — central to this comparison</span>
+  Qwen3.6-35B runs at <b>Q8_0 (~8-bit, near-lossless)</b>; DeepSeek-V4-Flash runs at <b>UD-IQ2_M (~2-bit, aggressive)</b>. DeepSeek matching or beating Qwen’s accuracy <i>from a 2-bit model</i> is the single most important cross-family datum: it suggests the full-precision DeepSeek headroom is substantially higher, while Qwen’s Q8 numbers are already close to its ceiling.
+</div>
+
+<table>
+<caption>Table 13 — Cross-family scorecard (each family’s best configuration; performance rows are own-hardware figures).</caption>
+<thead><tr><th>Dimension</th><th>Qwen3.6-35B-A3B (best: exp)</th><th>DeepSeek-V4-Flash-0731 (exp = native)</th><th>Edge</th></tr></thead>
+<tbody>
+<tr><td>Accuracy (198)</td><td>84.34% (native 81.82%)</td><td><b>85.35%</b></td><td>DeepSeek (+1.0)</td></tr>
+<tr><td>Quantization</td><td>Q8_0 (~8-bit)</td><td>UD-IQ2_M (~2-bit)</td><td>DeepSeek achieves its result under a 4× tighter bit budget</td></tr>
+<tr><td>Expansion effect</td><td><b>+2.52 pts, net +5</b> <span class="badge pass">PASS</span></td><td>±0.0, net 0 <span class="badge wash">WASH</span></td><td>Expansion pays only on Qwen</td></tr>
+<tr><td>Total tokens</td><td>1.532 M (exp) / 1.468 M (native)</td><td><b>1.115 M</b> (exp) / 1.175 M (native)</td><td>DeepSeek −27% vs q35_exp</td></tr>
+<tr><td>Reasoning style</td><td>long chains (median 5.4k)</td><td>brief chains (median 1.4–1.6k)</td><td>different families, same tail behaviour</td></tr>
+<tr><td>Correct / Mtok</td><td>109.0</td><td><b>151.6</b></td><td>DeepSeek +39% token efficiency</td></tr>
+<tr><td>Truncations (loops)</td><td>6 (exp) / 5 (native) / 24 (27B)</td><td>9 (exp) / 12 (native)</td><td>Qwen3.6-35B cleaner</td></tr>
+<tr><td>Chemistry</td><td>76.3%</td><td><b>81.7%</b></td><td>DeepSeek</td></tr>
+<tr><td>Physics</td><td><b>95.3%</b></td><td>90.7–93.0%</td><td>Qwen</td></tr>
+<tr><td>Throughput (own HW)</td><td><b>85–99 tok/s</b> (1× 48 GB)</td><td>16–18 tok/s (4× GPU, 128 GB)</td><td>Qwen ≈ 5× faster</td></tr>
+<tr><td>Latency / question (own HW)</td><td><b>75–91 s</b></td><td>324–346 s</td><td>Qwen ≈ 3.8× faster</td></tr>
+<tr><td>Time / correct answer (own HW)</td><td><b>108 s</b></td><td>405 s</td><td>Qwen, on this hardware</td></tr>
+<tr><td>HW requirement</td><td>48 GB single GPU (Q8, 35B)</td><td>128 GB multi-GPU (2-bit)</td><td>Qwen: 37% of the VRAM at 4× the bit budget</td></tr>
+</tbody>
+</table>
+
+<p><b>Reading of the table.</b></p>
+<ol>
+  <li><b>Accuracy vs quantization.</b> DeepSeek leads by 1.0 points at ~2-bit; at matched precision the gap would likely widen in its favour. Qwen’s counter-argument is deployment economics: 84% at 8-bit on a single 48&nbsp;GB card.</li>
+  <li><b>Expansion is family-dependent.</b> The paper’s acceptance rule (net ≥ 0 vs native) is clearly met by Qwen3.6-35B (<b>+5</b>) and met only marginally by DeepSeek (<b>0</b>: 6 wins / 6 losses, no accuracy change). At 2-bit, router scores beyond the native top-6 appear to carry more noise than signal — adding experts neither helps nor hurts, it just (slightly) shortens answers. This is consistent with the model-dependence warning in the ds4 documentation.</li>
+  <li><b>Different verbosity strategies, same failure mode.</b> DeepSeek answers briefly and stays accurate up to 10k tokens; Qwen reasons long and stays accurate up to 20k (expansion rescuing the 10–20k band). Both collapse beyond 20k, mostly on the same loop-prone questions (88, 81, 127, 147, 185).</li>
+  <li><b>Throughput is hardware-dominated.</b> The ~5× tok/s advantage of Qwen reflects both sparsity (~3B active parameters vs DeepSeek’s larger active set) and the single-GPU-vs-4-GPU setup; it must not be read as an architecture verdict across hosts.</li>
+</ol>
+
+<!-- ==================== 6. CONCLUSIONS ==================== -->
+<h2 class="sec" id="s6"><span class="no">6</span>Conclusions</h2>
+<ol>
+  <li><b>The expansion’s benefit is real but model-dependent — the central result of RUN1209.</b> On Qwen3.6-35B-A3B it delivers <b>+2.52 accuracy points (paired net +5)</b> for +4.3% tokens overall (+9.5% on the matched both-correct questions, with flat medians) and −13% throughput, and it is the <i>only</i> configuration that pushes the 35B MoE past the dense Qwen3.8-27B (84.34% vs 83.84%). The paper acceptance rule (net ≥ 0) is <b>satisfied within the Qwen family</b>. On DeepSeek-V4-Flash the rule is met only at the boundary (<b>net 0</b>, 85.35% both ways): at 2-bit, expansion neither helps nor regresses — usable, but not a lever.</li>
+  <li><b>Where Qwen gains is Chemistry</b> (70.97 → 76.34; 10 of 12 expansion wins), while Physics is saturated at 95.35% regardless of routing. DeepSeek, conversely, is the strongest Chemistry model overall (81.7%) and concedes Physics to Qwen.</li>
+  <li><b>The dense 27B reference validates the MoE-with-expansion thesis.</b> The 27B is accurate (83.84%) but ≈3× slower per token, 4.1× more GPU-hungry, 47% more verbose, and the most loop-prone configuration (24 truncations). A 35B-A3B with expanded routing beats it on accuracy at ~24% of the GPU cost.</li>
+  <li><b>Very long reasoning is the universal failure mode.</b> Accuracy beyond 20k tokens is 27–38% everywhere; every truncated answer is wrong; five questions (88, 81, 127, 147, 185) loop across families, quants and routing modes. A repetition-detection early-stop (or loop-aware sampler) would reclaim several accuracy points and a large share of tail latency at zero quality cost — the most actionable engineering outcome of this run.</li>
+  <li><b>Family verdict.</b> For accuracy per token and Chemistry strength, DeepSeek-V4-Flash-0731 leads — an impressive result for a 2-bit deployment whose full-precision headroom is untested here. For deployable throughput and accuracy-per-second on modest hardware, Qwen3.6-35B-A3B <b>with expansion</b> is the best RUN1209 configuration: 84.34% at ~86 tok/s on a single 48&nbsp;GB GPU. The two families are complementary rather than competing on this benchmark; the expansion technique earns its place in the Qwen stack and remains optional (harmless) for DeepSeek.</li>
+</ol>
+
+<p class="footnote">
+Reproducibility: all figures recomputed from raw predictions/reviews via <code>final_analysis.py</code> (aggregates in <code>final_analysis.json</code>); server-side slot timings and MoE expert counters from <code>Run*/root/logs/server-*.log</code>. Companion files: <code>finalcompariso1209.md</code> (this report, Markdown), <code>RUN1209_stats.json</code>, <code>RUN1209_results.md</code>.
+</p>
+
+</div>
+</body>
+</html>

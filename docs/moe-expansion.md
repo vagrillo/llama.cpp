@@ -22,30 +22,47 @@ Reference results on Qwen3.6-35B-A3B (ds4/Metal, M4 Pro, MMLU-Pro 714 questions,
 greedy): native top-8 vs expansion N=20 T=0.8 decay 0.99→0.50 — accuracy 84.0%
 vs 84.5% (unchanged), mean reasoning tokens −8.5%, latency −10.9%, with ~15.5
 experts/token instead of 8. Gains are model-dependent: always measure per model.
+On GPQA-Diamond the accuracy effect is where the expansion stands out: see the
+RUN1209 results below (+2.52 pts on Qwen3.6-35B-A3B, paired net +5).
 
-## Measured on GPQA-Diamond (this branch)
+## Measured on GPQA-Diamond (RUN1209, this branch)
 
-Full paired benchmark, greedy, 198/198 questions, Qwen3.6-35B-A3B (UD-Q6_K_XL):
-config N=20 / T=0.8 / layers 29–39 / decay 0.99→0.50 vs native top-8.
-Complete report: [benchmark/GPQA/report_gpqa_moe.md](../benchmark/GPQA/report_gpqa_moe.md)
-([HTML rendered](https://htmlpreview.github.io/?https://github.com/vagrillo/llama.cpp/blob/moe-expansion/benchmark/GPQA/report_gpqa_moe.html),
-[source](../benchmark/GPQA/report_gpqa_moe.html) — GitHub does not render HTML;
-download and open locally) — raw predictions, reviews and methodology are
-committed under [benchmark/GPQA/](../benchmark/GPQA/).
+Five-run paired benchmark — 198/198 GPQA-Diamond questions per run, greedy,
+identical prompts, generation cap 32,768 tokens for every run; the only
+changed variable is the routing configuration:
 
-| metric | expansion | native | Δ |
-|---|---|---|---|
-| accuracy | **85.35%** (169/198) | 83.33% (165/198) | **+2.02 pts** |
-| paired net | **+4** (13 wins / 9 losses / 156 ties) | | |
-| tokens — mean | 7,392 | 8,156 | **−9.4%** |
-| tokens — median | 5,180 | 5,494 | **−5.7%** |
-| truncated responses | 0 | 0 | — |
+| run | model | quant | routing | accuracy |
+|---|---|---|---|---|
+| DeepSeek-V4-Flash-0731 | expanded | UD-IQ2_M (~2-bit) | N=12, T=0.8, L28–42, decay→0.10 | **85.35%** |
+| DeepSeek-V4-Flash-0731 | native | UD-IQ2_M (~2-bit) | top-6 | **85.35%** |
+| Qwen3.6-35B-A3B | **expanded** | Q8_0 | N=16, T=0.8, L25–39, decay→0.50 | **84.34%** |
+| Qwen3.6-35B-A3B | native | Q8_0 | top-8 | 81.82% |
+| Qwen3.8-27B (dense, reference) | native | Q8_0 | — | 83.84% |
 
-Paired net is positive on all three subjects (Physics +2, Chemistry +1,
-Biology +1), with expansion mean **and** median tokens lower everywhere
-(Biology −23.6%). On GPQA the "succinct convergence" shows up on both axes:
-slightly better accuracy on fewer tokens. Note: the two runs executed on
-different GPUs, so decoding speed is intentionally not compared.
+> **The accuracy advantage is notable.** On the same Q8_0 checkpoint the
+> expansion gains **+2.52 pts** over native routing (paired net **+5**:
+> 12 wins vs 7 losses, agreement on 179/198 questions). With the expansion
+> active, the **Qwen3.6-35B-A3B (Q8) overtakes the newer dense Qwen3.8-27B**
+> (84.34% vs 83.84%): native routing falls 2.0 pts short of the 27B — the
+> expansion closes the generation gap. The gain is concentrated in Chemistry
+> (70.97% → 76.34%; 10 of the 12 paired wins), with Physics saturated at
+> 95.35% for the whole family. Token cost: +4.3% mean over the full run,
+> **+9.5% restricted to the matched both-correct questions** (medians flat —
+> the gap sits in the long tail).
+
+On DeepSeek-V4-Flash-0731 the expansion is neutral at 2-bit (paired net 0,
+identical 85.35%, −5% mean tokens, 3 fewer truncations): consistent with the
+model-dependence warning — at IQ2_M the router scores beyond the native top-6
+carry more noise than signal. The cost of wider routing is ~11–13% generation
+throughput on both families; full performance analysis (latency, tok/s,
+GPU-hours) in the final report.
+
+Complete final report: [benchmark/RUN1209/finalcompariso1209.md](../benchmark/RUN1209/finalcompariso1209.md)
+([HTML rendered](https://htmlpreview.github.io/?https://github.com/vagrillo/llama.cpp/blob/moe-expansion/benchmark/RUN1209/finalcompariso1209.html),
+[source](../benchmark/RUN1209/finalcompariso1209.html) — GitHub does not render
+HTML; download and open locally) — raw predictions, reviews, per-subject and
+token-class breakdowns, loop analysis and methodology are committed under
+[benchmark/RUN1209/](../benchmark/RUN1209/).
 
 ## The three knobs
 
@@ -151,12 +168,15 @@ Not supported (native routing kept, no error):
   `auto` does NOT renormalize — the kept weights keep their decayed score scale
   and the dropped mass is discarded, exactly like the ds4 DeepSeek-V4 path.
   Forcing `never`/`always` overrides this.
-  <br><br>Measured on GPQA-Diamond (DeepSeek-V4-Flash-0731, IQ2_M, N=12/T=0.8/L30-42):
-  the expansion regressed (accuracy −2.02 pts, paired net −4) in a run executed
-  with the pre-`auto` build, which forced renormalization. The renormalization
-  mode exists precisely to test the weight-sum semantics hypothesis on raw-score
-  routers: a rerun with `--moe-expert-renorm never` (or `auto`, if the GGUF does
-  not set `expert_weights_norm=true`) isolates that variable.
+  <br><br>Measured on GPQA-Diamond (DeepSeek-V4-Flash-0731, IQ2_M, RUN1209):
+  with `auto` renormalization at equal 32k budgets the expansion is **neutral**
+  (85.35% native vs 85.35% expanded, paired net 0, −5% mean tokens) — the
+  earlier regression (−2.02 pts, paired net −4) had been produced by a
+  pre-`auto` build that forced renormalization, compounded by an unequal-budget
+  comparison (native capped at 16.3k). The renormalization mode exists
+  precisely to control the weight-sum semantics on raw-score routers:
+  under `auto` DeepSeek-V4 keeps its raw decayed scores (no renormalization),
+  exactly like the ds4 DeepSeek-V4 path.
 - Warmup batches keep the native routing (the warmup graph already exercises
   all experts, and it sizes the compute buffers: N ≤ expert_count fits).
 - Expert-id tie-breaking on equal router probabilities follows ggml's argsort
@@ -238,14 +258,19 @@ and open an issue with the backtrace plus the `moe:` startup banner lines.
   equivalent; deterministic across runs; layer range gates per layer; invalid
   parameters exit non-zero.
 - `test-arg-parser`, `test-sampling`, `test-chat-template` pass unmodified.
-- **Quality benchmark**: full paired GPQA-Diamond run (198/198 questions,
-  greedy) — accuracy +2.02 pts, paired net +4, tokens −9.4% mean / −5.7%
-  median for the expansion; net positive on all three subjects. Full data,
-  methodology and divergent-question list:
-  [benchmark/GPQA/](../benchmark/GPQA/) ·
-  [report (md)](../benchmark/GPQA/report_gpqa_moe.md) ·
-  [report (html, rendered)](https://htmlpreview.github.io/?https://github.com/vagrillo/llama.cpp/blob/moe-expansion/benchmark/GPQA/report_gpqa_moe.html).
+- **Quality benchmark**: RUN1209 — five complete paired GPQA-Diamond runs
+  (198/198 questions each, greedy, equal 32k budgets) across two model
+  families and a dense reference: expansion **+2.52 pts (paired net +5)** on
+  Qwen3.6-35B-A3B Q8_0 — overtaking the dense Qwen3.8-27B reference — and
+  **neutral (net 0)** on DeepSeek-V4-Flash-0731 IQ2_M. Full data, methodology,
+  per-subject/token-class/loop analysis and final report:
+  [benchmark/RUN1209/](../benchmark/RUN1209/) ·
+  [final report (md)](../benchmark/RUN1209/finalcompariso1209.md) ·
+  [final report (html, rendered)](https://htmlpreview.github.io/?https://github.com/vagrillo/llama.cpp/blob/moe-expansion/benchmark/RUN1209/finalcompariso1209.html).
 
 When benchmarking quality, keep the paired protocol (same questions, greedy,
 one variable at a time) — see the ds4 instruction document for the full
-MMLU-Pro recipe.
+MMLU-Pro recipe, and
+[benchmark/RUN1209/finalcompariso1209.md](../benchmark/RUN1209/finalcompariso1209.md)
+for the GPQA-Diamond protocol used by RUN1209 (paired exp/native runs, equal
+token budgets, evalscope `ANSWER: [LETTER]` scoring).

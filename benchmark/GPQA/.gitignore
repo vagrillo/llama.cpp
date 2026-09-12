@@ -1,4 +1,0 @@
-# heavy / redundant artifacts of the benchmark runs
-tgz/
-logs/
-*.rerun-*
