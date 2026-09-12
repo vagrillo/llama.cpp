@@ -12,7 +12,7 @@ datasets:
 debug: false
 enable_progress_tracker: false
 eval_backend: Native
-eval_batch_size: 1
+eval_batch_size: 4
 eval_config: null
 eval_type: openai_api
 evalscope_version: 1.11.1
@@ -20,17 +20,17 @@ evaluation_identity:
   benchmarks:
     gpqa_diamond:
       cache_source:
-        evaluation_version: unknown
-        fingerprint: unknown
-        inferred_legacy: true
+        evaluation_version: v1.0
+        fingerprint: sha256:aa7e5a17343768b7501b0684de811601aeb414875df72ee3c3de7708c7b12316
+        inferred_legacy: false
         prediction_reused: true
         reuse_mode: rerun_review_override
       evaluation_version: v1.0
-      fingerprint: sha256:3bbeded2394ca38278c29dcfb42ddb67868939e903ec9bbcb9bbaa4031e189bd
+      fingerprint: sha256:bd4fe894ce55a01dcd24c3405a278cbcf0d99af4d24e3e0e92689c7d0a34667c
   schema_version: 1
 generation_config:
-  batch_size: 1
-  max_tokens: 16384
+  batch_size: 4
+  max_tokens: 32768
   stream: true
   temperature: 0.0
   timeout: 3600.0

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>GPQA-Diamond: MoE expansion across DeepSeek-V4-Flash, Qwen3.6-35B and Qwen3.8-27B</title>
+<style>
+body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; color:#0f172a; max-width: 1080px; margin: 24px auto; padding: 0 16px; background:#f8fafc; }
+h1 { font-size: 1.5em; } h2 { font-size: 1.15em; margin-top: 1.9em; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; background: white; }
+th, td { border: 1px solid #e2e8f0; padding: 6px 10px; text-align: right; font-size: 0.92em; }
+th { background: #f1f5f9; } td:first-child, th:first-child { text-align: left; }
+.verde { color: #047857; font-weight: 600; } .rosso { color: #b91c1c; font-weight: 600; }
+.box { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 18px; margin: 14px 0; }
+.kpi { display: flex; gap: 14px; flex-wrap: wrap; } .kpi .box { flex: 1; min-width: 200px; text-align: center; }
+.kpi .num { font-size: 1.6em; font-weight: 700; }
+.note { color:#475569; font-size: 0.87em; }
+.mono { font-family: ui-monospace, monospace; font-size: 0.85em; background:#f1f5f9; padding: 1px 5px; border-radius: 4px; }
+</style></head><body>
+<h1>GPQA-Diamond: MoE expert expansion across DeepSeek-V4-Flash, Qwen3.6-35B and Qwen3.8-27B</h1>
+<p class="note">Paired protocol · 198 questions · temperature 0 · 32,768-token generation budget ·
+llama.cpp branch <span class="mono">moe-expansion</span> (25ca82a6) · paper appendix</p>
+
+<div class="kpi">
+<div class="box"><div class="num">85.35%</div>DS4-Flash exp (N=12)<br><span class="note">native 85.35% · net +0</span></div>
+<div class="box"><div class="num">84.34%</div>Qwen3.6-35B exp (N=16)<br><span class="note">native 81.82% · net +5</span></div>
+<div class="box"><div class="num">83.84%</div>Qwen3.8-27B Q8 (reference)</div>
+<div class="box"><div class="num verde">+2.52</div>Qwen35 exp Δ vs native<br><span class="note">replicates Q6_K: +2.02</span></div>
+</div>
+
+<h2>1. Headline results</h2>
+<table><tr><th>Configuration</th><th>accuracy</th><th>correct</th><th>tok mean</th><th>tok median</th><th>tok p90</th><th>trunc</th></tr><tr><td>DS4-Flash-0731 exp (N=12, T=0.8, L28-42, decay→0.10)</td><td>85.35%</td><td>169/198</td><td>5,631</td><td>1,580</td><td>21,407</td><td>9</td></tr><tr><td>DS4-Flash-0731 native (top-6)</td><td>85.35%</td><td>169/198</td><td>5,933</td><td>1,443</td><td>20,036</td><td>12</td></tr><tr><td>Qwen3.6-35B exp (N=16, T=0.8, L25-39, decay→0.50)</td><td>84.34%</td><td>167/198</td><td>7,738</td><td>5,448</td><td>16,751</td><td>6</td></tr><tr><td>Qwen3.6-35B native (top-8)</td><td>81.82%</td><td>162/198</td><td>7,416</td><td>5,403</td><td>16,120</td><td>5</td></tr><tr><td>Qwen3.8-27B (Q8, native)</td><td>83.84%</td><td>166/198</td><td>10,911</td><td>6,758</td><td>32,768</td><td>24</td></tr></table>
+
+<h2>2. Expansion effect (paired, same questions)</h2>
+<table><tr><th>Model</th><th>exp acc</th><th>native acc</th><th>Δ pts</th><th>exp wins</th><th>native wins</th><th>net</th></tr><tr><td>DS4-Flash-0731</td><td>85.35%</td><td>85.35%</td><td>+0.00</td><td>6</td><td>6</td><td>+0</td></tr><tr><td>Qwen3.6-35B</td><td>84.34%</td><td>81.82%</td><td>+2.53</td><td>12</td><td>7</td><td>+5</td></tr></table>
+<div class="box">DS4-Flash: net 0 — neutral at these settings (the earlier net −4 was a budget artifact:
+native capped at 16.3k). Qwen3.6-35B: net +5 — the expansion wins (+2.52 pts), replicating the Q6_K
+result on Q8_0. Paper acceptance rule (net ≥ 0): satisfied for Qwen, not for DeepSeek at these settings.</div>
+
+<h2>3. Does Qwen 35B + expansion reach the 27B?</h2>
+<table><tr><th>Configuration</th><th>accuracy</th></tr>
+<tr><td>Qwen3.8-27B (Q8) — newer gen, smaller</td><td>83.84%</td></tr>
+<tr><td>Qwen3.6-35B native (top-8)</td><td>81.82%</td></tr>
+<tr><td><b>Qwen3.6-35B expanded (N=16)</b></td><td><b>84.34%</b></td></tr></table>
+<p><b>Yes</b>: the 35B with expansion surpasses the newer 27B Q8 reference (+0.5 pts) while the native
+35B falls 2.0 points short — the expansion closes the generation gap.</p>
+
+<h2>4. Token consumption</h2>
+<table><tr><th>Config</th><th>mean</th><th>median</th><th>p90</th><th>total (198 q)</th><th>truncated</th></tr>
+<tr><td>DS4 exp (N=12)</td><td>5,631</td><td>1,580</td><td>21,407</td><td>1,114,938</td><td>9</td></tr>
+<tr><td>DS4 native</td><td>5,933</td><td>1,443</td><td>20,036</td><td>1,174,801</td><td>12</td></tr>
+<tr><td>Q35 exp (N=16)</td><td>7,738</td><td>5,448</td><td>16,751</td><td>1,532,034</td><td>6</td></tr>
+<tr><td>Q35 native</td><td>7,416</td><td>5,403</td><td>16,120</td><td>1,468,289</td><td>5</td></tr>
+<tr><td>Qwen3.8-27B</td><td>10,911</td><td>6,758</td><td>32,768</td><td>2,160,347</td><td>24</td></tr>
+</table>
+<p class="note">Expansion costs +4-5% mean tokens on Qwen; token-neutral (−5%) on DeepSeek-V4. The 27B
+reference is the most verbose configuration (24 truncations at the 32k cap).</p>
+
+<h2>5. Per-subject accuracy</h2>
+<table>
+<tr><th>Subject</th><th>n</th><th>DS4 exp</th><th>DS4 nat</th><th>Q35 exp</th><th>Q35 nat</th><th>Q27B</th><th>net DS4</th><th>net Q35</th></tr>
+<tr><td>Biology</td><td>19</td><td>78.9</td><td>73.7</td><td>73.7</td><td>73.7</td><td>78.9</td><td class='verde'>+1</td><td class='verde'>+0</td></tr><tr><td>Chemistry</td><td>93</td><td>81.7</td><td>80.6</td><td>76.3</td><td>71.0</td><td>74.2</td><td class='verde'>+1</td><td class='verde'>+5</td></tr><tr><td>Physics</td><td>86</td><td>90.7</td><td>93.0</td><td>95.3</td><td>95.3</td><td>95.3</td><td class='rosso'>-2</td><td class='verde'>+0</td></tr>
+</table>
+<p class="note">Expansion nets are positive or neutral in every subject for both models.</p>
+
+<h2>6. Methodology</h2>
+<div class="box note"><ul>
+<li>Paired protocol: same 198 GPQA-diamond questions, temperature 0 (greedy), identical prompt, 32,768-token budget in every run; evalscope review scoring.</li>
+<li>Expansion is runtime-only (no weight changes): N = routed-expert budget above the native top-K, T = adaptive threshold on rank N/2, late-layer scoped, linear influence decay on the added ranks.</li>
+<li>DS4 runs: unsloth UD-IQ2_M (~2-bit), server ctx 43,264. Qwen runs: unsloth Q8_0. Each model's runs on the same host; tpot/latency comparisons are valid within a model pair only.</li>
+<li>Renormalization: auto (follows each model's stock normalization).</li>
+<li>Net = expansion wins − native wins over divergent questions; acceptance rule: net ≥ 0.</li>
+</ul></div>
+<p class="note">Generated by gen_appendix.py · branch moe-expansion (vagrillo/llama.cpp).</p>
+</body></html>

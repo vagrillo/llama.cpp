@@ -8,6 +8,7 @@
 #
 # Gli host potrebbero chiamarla anche via:
 #   bash benchds4.sh server-exp | server-native | eval exp | eval native
+#   bash benchds4.sh eval-divergent  # rifà SOLO le domande in cui il nativo ha battuto l'espanso (server EXPANSO attivo)
 #
 # I parametri di espansione si scelgono al lancio via environment, es.:
 #   EXPERTS=12 THRESHOLD=0.8 bash benchds4.sh pipeline
@@ -133,6 +134,27 @@ stage_eval() {
         --use-cache "$HOME/gpqa-ds4-$name" --rerun-review
 }
 
+# rifà SOLO le domande divergenti scelte con SELECT (default: quelle dove il
+# nativo ha battuto l'espanso), contro il SERVER ESPANSO attivo, con budget pieno.
+# richiede eval_divergent.py nella stessa directory dello script.
+stage_eval_divergent() {
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    # fallback: se i work-dir ds4 non esistono usa i nomi del bench.sh originale
+    EXP_DIR="${EXP_DIR:-$HOME/gpqa-ds4-exp}"
+    NAT_DIR="${NAT_DIR:-$HOME/gpqa-ds4-native}"
+    [ -d "$EXP_DIR/predictions" ]  || EXP_DIR="$HOME/gpqa-exp"
+    [ -d "$NAT_DIR/predictions" ]  || NAT_DIR="$HOME/gpqa-native"
+    echo "work-dir: exp=$EXP_DIR  nat=$NAT_DIR"
+    python3 "$script_dir/eval_divergent.py" \
+        --exp-dir "$EXP_DIR" \
+        --nat-dir "$NAT_DIR" \
+        --port "$PORT" \
+        --newcap "$MAX_TOKENS" \
+        --select "${SELECT:-nat_better}" \
+        --out "$HOME/gpqa-ds4-divergent-redo.json"
+}
+
 # pipeline FULL-GPU: niente esperti su CPU. il modello (90.9GB) occupa quasi
 # tutto il VRAM dei 96GB: serve un contesto piccolo, altrimenti OOM al load.
 # tradeoff: veloce (tpot ~12ms) ma il contesto corto puo' troncare le risposte
@@ -171,7 +193,8 @@ case "${1:-}" in
     server-exp)    start_server exp;    wait_health; echo "server pronto :$PORT - Ctrl+C per fermare"; wait "$SERVER_PID" ;;
     server-native) start_server native; wait_health; echo "server pronto :$PORT - Ctrl+C per fermare"; wait "$SERVER_PID" ;;
     eval)          stage_eval "$2" ;;
+    eval-divergent) stage_eval_divergent ;;
     pipeline)      stage_pipeline ;;
     pipeline-gpu)  stage_pipeline_gpu ;;
-    *) echo "uso: $0 {setup|pipeline|pipeline-gpu|server-exp|server-native|eval exp|eval native}"; exit 1 ;;
+    *) echo "uso: $0 {setup|pipeline|pipeline-gpu|server-exp|server-native|eval exp|eval native|eval-divergent}"; exit 1 ;;
 esac

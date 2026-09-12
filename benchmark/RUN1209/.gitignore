@@ -1,0 +1,4 @@
+# evalscope artifacts kept out of git: rerun copies and raw logs
+*.rerun-*
+logs/
+ds4-native-predictions/
