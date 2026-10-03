@@ -64,6 +64,22 @@ HTML; download and open locally) — raw predictions, reviews, per-subject and
 token-class breakdowns, loop analysis and methodology are committed under
 [benchmark/RUN1209/](../benchmark/RUN1209/).
 
+### Low-bit deployment: 2-bit at Q8-native accuracy on a 16 GB GPU
+
+The same expansion recipe makes a 2-bit deployment viable:
+**UD-Q2_K_XL (12.3 GB vs 36.9 GB for Q8_0) + expansion
+(`--moe-experts 20 --moe-expert-threshold 0.8 --moe-expert-decay-end 0.5
+--moe-expert-layer-start 25`) + `--reasoning-budget 22480`** (wrap-up message
+included — required at low bit-rates, see below) reaches **81.82% on
+GPQA-Diamond: identical to the Q8_0 native build (paired net 0, the same 162
+questions solved) at one third of the VRAM**, fitting a 16 GB GPU.
+The reasoning budget is what makes low-bit usable on this family: it forces
+end-of-thinking before a chain drifts into a repetition loop, keeping the
+output tail under the cap with unchanged throughput.
+
+Full guide with the validated command line and parameter table:
+[docs/moe-expansion-q2-16gb.md](moe-expansion-q2-16gb.md).
+
 ## The three knobs
 
 1. **Max experts N** (`--moe-experts N`, or `--moe-experts-add N` to add on top
@@ -134,7 +150,7 @@ regardless of the architecture name. Supported router families:
 
 | router family | models (examples) | notes |
 |---|---|---|
-| softmax | qwen2/3/3.5 MoE, qwen3vlmoe, qwen4exp, glm4-moe, lfm2moe (LiquidAI), olmoe, mixtral, smallthinker, jamba, minimax, nemotron-h, kimi, bailing, cohere2moe, ernie, llada-moe, hunyuan, grok, rnd1, mimo2, mellum, laguna, dots3note, dflash, ... | reference family (Qwen3.6-35B-A3B) |
+| softmax | qwen2/3/3.5 MoE, qwen3vlmoe, qwen4exp, glm4-moe, **lfm2.5-8B-A1B (LiquidAI, n=16/k=3)**, olmoe, mixtral, smallthinker, jamba, minimax, nemotron-h, kimi, bailing, cohere2moe, ernie, llada-moe, hunyuan, grok, rnd1, mimo2, mellum, laguna, dots3note, dflash, ... | reference family (Qwen3.6-35B-A3B) |
 | softmax + selection bias | deepseek2, deepseek32, deepseek4 (V4), glm-dsa (GLM 5.x) | bias affects rank order only; the cut is self-consistent with the gathered weights |
 | sigmoid + weight norm | glm-dsa (GLM 5.x default), ... | scores renormalized over the kept set, same as stock |
 | softmax-of-selected-scores | openai-moe (gpt-oss) | softmax over the selected set runs before the post-pass |
