@@ -1,4 +1,4 @@
-# Qwen3.6-35B-A3B at 2-bit on a 16 GB GPU
+# Qwen3.6-35B-A3B at 2-bit on a 16 GB GPU with equivalent performance of Q8 native
 
 **Goal:** run the 35B MoE on a **16 GB** consumer GPU. The Q8_0 build needs
 **36.9 GB** of VRAM for the weights alone (a 40–48 GB card); the
