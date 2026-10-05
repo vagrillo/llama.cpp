@@ -2629,7 +2629,23 @@ int ggml_metal_op_mul_mat_id(ggml_metal_op_t ctx, int idx) {
     const uint32_t r2 = 1;
     const uint32_t r3 = 1;
 
-    if (ggml_metal_op_mul_mat_id_use_mm(op, props_dev->has_simdgroup_mm)) {
+    bool use_mm = ggml_metal_op_mul_mat_id_use_mm(op, props_dev->has_simdgroup_mm);
+
+    // fallback per GPU family (es. M4/G16X): se la pipeline decode 'kernel_mul_mv_id_*'
+    // non compila su questo dispositivo, si usa il percorso batch mul_mm_id anche con
+    // pochi token (meno efficiente ma corretto) invece di dereferenziare una pipeline NULL
+    if (!use_mm) {
+        auto probe = ggml_metal_library_get_pipeline_mul_mv_id(lib, op);
+        if (!probe.pipeline) {
+            GGML_LOG_ERROR("%s: pipeline 'kernel_mul_mv_id_%s_f32' non disponibile su questa GPU "
+                           "(fallback al percorso mul_mm_id; segnalare il modello Mac/GPU su github.com/vagrillo/llama.cpp, branch moe-expansion)\n",
+                           __func__, ggml_type_name(op->src[0]->type));
+            GGML_ASSERT(props_dev->has_simdgroup_mm && "nemmeno la pipeline mul_mm_id e' utilizzabile su questa GPU");
+            use_mm = true;
+        }
+    }
+
+    if (use_mm) {
         // some Metal matrix data types require aligned pointers
         // ref: https://developer.apple.com/metal/Metal-Shading-Language-Specification.pdf (Table 2.5)
         //switch (op->src[0]->type) {
@@ -2718,6 +2734,8 @@ int ggml_metal_op_mul_mat_id(ggml_metal_op_t ctx, int idx) {
         }
     } else {
         auto pipeline = ggml_metal_library_get_pipeline_mul_mv_id(lib, op);
+
+        GGML_ASSERT(pipeline.pipeline && "pipeline mul_mv_id non disponibile su questa GPU (vedere log sopra)");
 
         const int nr0 = pipeline.nr0;
         const int nr1 = pipeline.nr1;
