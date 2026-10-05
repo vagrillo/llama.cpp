@@ -2185,6 +2185,17 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
         cb(weights, "ffn_moe_weights_scaled", il);
     }
 
+    // moe-predict: log anche i layer NON espansi (routing stock top-K): qui
+    // weights e selected_experts sono definitivi per entrambi i rami e n_used
+    // vale n_expert_used (es. 8) — prediction su tutti i 40 layer
+    if (!moe_expand && ggml_moe_expert_log_enabled()) {
+        ggml_set_output(selected_experts);
+        ggml_build_forward_expand(gf, selected_experts);
+        ggml_set_output(weights);
+        ggml_build_forward_expand(gf, weights);
+        res->moe_expert_logs[il] = { selected_experts, weights, (int) n_tokens, (int) n_used };
+    }
+
     //call early so that topk-moe can be used
     ggml_build_forward_expand(gf, weights);
 
