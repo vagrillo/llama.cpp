@@ -52,6 +52,10 @@ set_target_properties(llama PROPERTIES
     MACHO_CURRENT_VERSION 0 # keep macOS linker from seeing oversized version number
 )
 
+if (GGML_CUDA)
+    target_compile_definitions(llama PRIVATE AGRILLA_HAS_CUDA)
+endif()
+
 configure_file(llama-version.h.in ${CMAKE_CURRENT_BINARY_DIR}/llama-version.h @ONLY)
 
 target_include_directories(llama PRIVATE . ${CMAKE_CURRENT_BINARY_DIR})

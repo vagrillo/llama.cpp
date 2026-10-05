@@ -3,7 +3,8 @@
 // moe-predict: attiva l'esposizione dei tensori di routing quando e' richiesta
 // la registrazione per-token degli esperti (LLAMA_MOE_EXPERT_LOG=file.jsonl)
 static bool ggml_moe_expert_log_enabled() {
-    static const bool enabled = getenv("LLAMA_MOE_EXPERT_LOG") != nullptr;
+    static const bool enabled = getenv("LLAMA_MOE_EXPERT_LOG") != nullptr ||
+                                getenv("LLAMA_MOE_EXPERT_PREFETCH") != nullptr;
     return enabled;
 }
 #include "llama-moe-expansion.h"
@@ -2163,7 +2164,8 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
             ggml_build_forward_expand(gf, selected_experts);
             ggml_set_output(weights);
             ggml_build_forward_expand(gf, weights);
-            res->moe_expert_logs[il] = { selected_experts, weights, (int) weights->ne[2], (int) n_used, (int) n_expert };
+            res->moe_expert_logs[il] = { selected_experts, weights, (int) weights->ne[2], (int) n_used, (int) n_expert,
+            { gate_up_exps ? gate_up_exps : up_exps, gate_up_exps ? down_exps : gate_exps, down_exps } };
         }
     } else if (norm_w) {
         weights = ggml_reshape_2d(ctx0, weights, n_expert_used, n_tokens);
@@ -2193,7 +2195,8 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
         ggml_build_forward_expand(gf, selected_experts);
         ggml_set_output(weights);
         ggml_build_forward_expand(gf, weights);
-        res->moe_expert_logs[il] = { selected_experts, weights, (int) n_tokens, (int) n_used, (int) n_expert };
+        res->moe_expert_logs[il] = { selected_experts, weights, (int) n_tokens, (int) n_used, (int) n_expert,
+            { gate_up_exps ? gate_up_exps : up_exps, gate_up_exps ? down_exps : gate_exps, down_exps } };
     }
 
     //call early so that topk-moe can be used

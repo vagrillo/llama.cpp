@@ -1,4 +1,13 @@
 #include "ggml-cuda.h"
+
+// moe-predict prefetcher: anticipa in VRAM le pagine (memoria unificata) degli
+// esperti che il token successivo verra' a usare. Hint async: le pagine gia'
+// residenti non si muovono; senza GGML_CUDA_ENABLE_UNIFIED_MEMORY e' un no-op
+// (il puntatore non e' managed e l'API ritorna errore che ignoriamo).
+extern "C" void ggml_cuda_moe_prefetch(const void * ptr, size_t size, int device) {
+    cudaMemPrefetchAsync(ptr, size, device, nullptr);
+}
+
 #include "ggml-impl.h"
 #include "ggml-backend-impl.h"
 

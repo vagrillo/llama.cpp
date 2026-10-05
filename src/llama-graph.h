@@ -959,6 +959,9 @@ public:
         int           n_tokens;
         int           n_used;
         int           n_expert; // per validare gli id letti (grafici MTP/nextn non computati)
+        // tensori dei pesi degli esperti (gate/up/down o gate_up+down) per il prefetch:
+        // expert e => byte range [data + e*nb[2], data + (e+1)*nb[2])
+        ggml_tensor * exps[3] = { nullptr, nullptr, nullptr };
     };
     std::map<int, llm_moe_log> moe_expert_logs;
 

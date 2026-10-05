@@ -4,6 +4,10 @@
 #include "llama-arch.h"
 #include "llama-graph.h"
 #include "llama-impl.h"
+
+#if defined(AGRILLA_HAS_CUDA)
+extern "C" void ggml_cuda_moe_prefetch(const void * ptr, size_t size, int device);
+#endif
 #include "llama-batch.h"
 #include "llama-io.h"
 #include "llama-memory.h"
@@ -1494,10 +1498,12 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
         return nullptr;
     }
 
-    // moe-predict: registra su JSONL gli esperti tenuti per ogni token, layer
-    // per layer (peso>0 dopo il taglio di soglia). Una riga per ubatch:
-    //   {"pos0":N,"n":T,"layer":{"25":[[id,..]xT],...}}
-    if (!res->moe_expert_logs.empty() && !cparams.warmup) {
+    // moe-predict: (a) logger JSONL per token (LLAMA_MOE_EXPERT_LOG=file.jsonl) e
+    // (b) prefetcher predittivo (LLAMA_MOE_EXPERT_PREFETCH=1): dopo il compute di un
+    // ubatch di decode, anticipa in VRAM (cudaMemPrefetchAsync sui buffer unificati)
+    // i byte degli esperti appena usati, cosi' il token successivo li trova residenti.
+    // Il routing persiste tra token consecutivi: la copertura misurata e' ~47%.
+    if (!res->moe_expert_logs.empty() && !cparams.warmup && ubatch.n_tokens > 0) {
         static FILE * moe_log_file = []() -> FILE * {
             const char * path = getenv("LLAMA_MOE_EXPERT_LOG");
             return path ? fopen(path, "a") : nullptr;
@@ -1507,16 +1513,24 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
             return e ? std::max(1, atoi(e)) : 1;
         }();
         static int moe_log_counter = 0;
+        static const bool moe_prefetch = getenv("LLAMA_MOE_EXPERT_PREFETCH") != nullptr;
+        static const int  moe_prefetch_dev = []() {
+            const char * e = getenv("LLAMA_MOE_PREFETCH_DEVICE");
+            return e ? atoi(e) : 0;
+        }();
+        const bool do_log = moe_log_file && (moe_log_counter++ % moe_log_every) == 0;
 
-        if (moe_log_file && (moe_log_counter++ % moe_log_every) == 0) {
+        if (do_log || (moe_prefetch && ubatch.n_tokens == 1)) {
             const char Q = '"';
             std::string line;
-            line += '{';
-            line += Q; line += "pos0"; line += Q; line += ':';
-            line += std::to_string(ubatch.pos ? ubatch.pos[0] : 0);
-            line += ','; line += Q; line += 'n'; line += Q; line += ':';
-            line += std::to_string((int) ubatch.n_tokens);
-            line += ','; line += Q; line += "layer"; line += Q; line += ':'; line += '{';
+            if (do_log) {
+                line += '{';
+                line += Q; line += "pos0"; line += Q; line += ':';
+                line += std::to_string(ubatch.pos ? ubatch.pos[0] : 0);
+                line += ','; line += Q; line += 'n'; line += Q; line += ':';
+                line += std::to_string((int) ubatch.n_tokens);
+                line += ','; line += Q; line += "layer"; line += Q; line += ':'; line += '{';
+            }
             bool first_layer = true;
             for (const auto & [il, st] : res->moe_expert_logs) {
                 const int n_tok = st.n_tokens;
@@ -1534,32 +1548,64 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                     if (ids[k] < 0 || ids[k] >= st.n_expert) plausible = false;
                 }
                 for (size_t k = 0; plausible && k < wgt.size(); ++k) {
-                    if (!(wgt[k] >= 0.0f)) plausible = false;  // scarta NaN/negativi (niente tetto: w_scale puo' superare 1)
+                    if (!(wgt[k] >= 0.0f)) plausible = false;  // scarta NaN/negativi
                 }
                 if (!plausible) continue;
-                if (!first_layer) line += ',';
-                first_layer = false;
-                line += Q; line += std::to_string(il); line += Q; line += ':'; line += '[';
-                bool first_tok = true;
-                for (int t = 0; t < n_tok && t < (int) ubatch.n_tokens; ++t) {
-                    if (!first_tok) line += ',';
-                    first_tok = false;
-                    line += '[';
-                    bool first_id = true;
+
+                // kept ids dell'ultimo token (quelli che prefetchiamo)
+                std::vector<int32_t> kept;
+                if (n_tok > 0) {
+                    const int t = n_tok - 1;  // ultimo token dell'ubatch
                     for (int r = 0; r < n_used; ++r) {
                         if (wgt[r * n_tok + t] > 1e-6f) {
-                            if (!first_id) line += ',';
-                            first_id = false;
-                            line += std::to_string(ids[r * n_tok + t]);
+                            kept.push_back(ids[r * n_tok + t]);
                         }
+                    }
+                }
+
+                // prefetch: per ogni esperto tenuto, anticipa in VRAM i suoi byte
+                // in ciascun tensore di pesi (gate/up/down) del layer
+                if (moe_prefetch && ubatch.n_tokens == 1 && !kept.empty()) {
+#if defined(AGRILLA_HAS_CUDA)
+                    for (int k = 0; k < 3; ++k) {
+                        ggml_tensor * t = st.exps[k];
+                        if (!t || !t->data || t->nb[2] == 0) continue;
+                        const char * base = (const char *) t->data;
+                        for (int32_t e : kept) {
+                            if (e < 0 || (size_t) e >= (size_t) st.n_expert) continue;
+                            ggml_cuda_moe_prefetch(base + (size_t) e * t->nb[2], (size_t) t->nb[2], moe_prefetch_dev);
+                        }
+                    }
+#endif
+                }
+
+                if (do_log) {
+                    if (!first_layer) line += ',';
+                    first_layer = false;
+                    line += Q; line += std::to_string(il); line += Q; line += ':'; line += '[';
+                    bool first_tok = true;
+                    for (int t = 0; t < n_tok && t < (int) ubatch.n_tokens; ++t) {
+                        if (!first_tok) line += ',';
+                        first_tok = false;
+                        line += '[';
+                        bool first_id = true;
+                        for (int r = 0; r < n_used; ++r) {
+                            if (wgt[r * n_tok + t] > 1e-6f) {
+                                if (!first_id) line += ',';
+                                first_id = false;
+                                line += std::to_string(ids[r * n_tok + t]);
+                            }
+                        }
+                        line += ']';
                     }
                     line += ']';
                 }
-                line += ']';
             }
-            line += '}'; line += '}'; line += '\n';
-            fputs(line.c_str(), moe_log_file);
-            fflush(moe_log_file);
+            if (do_log) {
+                line += '}'; line += '}'; line += '\n';
+                fputs(line.c_str(), moe_log_file);
+                fflush(moe_log_file);
+            }
         }
     }
 
