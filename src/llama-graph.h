@@ -951,6 +951,16 @@ public:
     };
     std::map<int, llm_moe_stat> moe_expert_counts;
 
+    // MoE expert logging (LLAMA_MOE_EXPERT_LOG=file.jsonl): per-token expert
+    // IDs and post-expansion weights, read back after compute by llama-context
+    struct llm_moe_log {
+        ggml_tensor * ids;      // [n_used, n_tokens] I32 candidate ids
+        ggml_tensor * weights;  // [1, n_used, n_tokens] F32 post-expansion (>0 = kept)
+        int           n_tokens;
+        int           n_used;
+    };
+    std::map<int, llm_moe_log> moe_expert_logs;
+
     std::vector<llm_graph_input_ptr> inputs;
     std::vector<llm_graph_fused_node> fused_nodes;
 

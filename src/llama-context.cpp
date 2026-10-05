@@ -1494,6 +1494,64 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
         return nullptr;
     }
 
+    // moe-predict: registra su JSONL gli esperti tenuti per ogni token, layer
+    // per layer (peso>0 dopo il taglio di soglia). Una riga per ubatch:
+    //   {"pos0":N,"n":T,"layer":{"25":[[id,..]xT],...}}
+    if (!res->moe_expert_logs.empty() && !cparams.warmup) {
+        static FILE * moe_log_file = []() -> FILE * {
+            const char * path = getenv("LLAMA_MOE_EXPERT_LOG");
+            return path ? fopen(path, "a") : nullptr;
+        }();
+        static const int moe_log_every = []() {
+            const char * e = getenv("LLAMA_MOE_EXPERT_LOG_EVERY");
+            return e ? std::max(1, atoi(e)) : 1;
+        }();
+        static int moe_log_counter = 0;
+
+        if (moe_log_file && (moe_log_counter++ % moe_log_every) == 0) {
+            const char Q = '"';
+            std::string line;
+            line += '{';
+            line += Q; line += "pos0"; line += Q; line += ':';
+            line += std::to_string(ubatch.pos ? ubatch.pos[0] : 0);
+            line += ','; line += Q; line += 'n'; line += Q; line += ':';
+            line += std::to_string((int) ubatch.n_tokens);
+            line += ','; line += Q; line += "layer"; line += Q; line += ':'; line += '{';
+            bool first_layer = true;
+            for (const auto & [il, st] : res->moe_expert_logs) {
+                const int n_tok = st.n_tokens;
+                const int n_used = st.n_used;
+                if (n_tok <= 0 || n_used <= 0 || ubatch.n_tokens <= 0) continue;
+                std::vector<int32_t> ids(n_used * n_tok);
+                std::vector<float>   wgt(n_used * n_tok);
+                ggml_backend_tensor_get(st.ids,     ids.data(), 0, ids.size() * sizeof(int32_t));
+                ggml_backend_tensor_get(st.weights, wgt.data(), 0, wgt.size() * sizeof(float));
+                if (!first_layer) line += ',';
+                first_layer = false;
+                line += Q; line += std::to_string(il); line += Q; line += ':'; line += '[';
+                bool first_tok = true;
+                for (int t = 0; t < n_tok && t < (int) ubatch.n_tokens; ++t) {
+                    if (!first_tok) line += ',';
+                    first_tok = false;
+                    line += '[';
+                    bool first_id = true;
+                    for (int r = 0; r < n_used; ++r) {
+                        if (wgt[r * n_tok + t] > 1e-6f) {
+                            if (!first_id) line += ',';
+                            first_id = false;
+                            line += std::to_string(ids[r * n_tok + t]);
+                        }
+                    }
+                    line += ']';
+                }
+                line += ']';
+            }
+            line += '}'; line += '}'; line += '\n';
+            fputs(line.c_str(), moe_log_file);
+            fflush(moe_log_file);
+        }
+    }
+
     // MoE expert expansion observability: accumulate the per-layer selected
     // expert counts and periodically report the experts/token averages
     // (interval: cparams.moe_stats_every, env LLAMA_MOE_EXPERT_STATS_EVERY, 0 = off)

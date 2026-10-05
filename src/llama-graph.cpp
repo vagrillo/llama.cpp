@@ -1,4 +1,11 @@
 #include "llama-graph.h"
+
+// moe-predict: attiva l'esposizione dei tensori di routing quando e' richiesta
+// la registrazione per-token degli esperti (LLAMA_MOE_EXPERT_LOG=file.jsonl)
+static bool ggml_moe_expert_log_enabled() {
+    static const bool enabled = getenv("LLAMA_MOE_EXPERT_LOG") != nullptr;
+    return enabled;
+}
 #include "llama-moe-expansion.h"
 
 #include "llama-impl.h"
@@ -1337,6 +1344,7 @@ void llm_graph_result::reset() {
     t_candidates.clear();
 
     moe_expert_counts.clear();
+    moe_expert_logs.clear();
 
     params = {};
 
@@ -2146,6 +2154,16 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
             // processes in this graph: late layers may see fewer tokens than the
             // ubatch when the output-token optimization truncates the last layers
             res->moe_expert_counts[il] = { sel_count_out, (int) weights->ne[2] };
+        }
+
+        // per-token expert logging (moe-predict): espone gli id candidati e i
+        // pesi post-espansione (>0 = esperto tenuto) per il readback su host
+        if (ggml_moe_expert_log_enabled()) {
+            ggml_set_output(selected_experts);
+            ggml_build_forward_expand(gf, selected_experts);
+            ggml_set_output(weights);
+            ggml_build_forward_expand(gf, weights);
+            res->moe_expert_logs[il] = { selected_experts, weights, (int) weights->ne[2], (int) n_used };
         }
     } else if (norm_w) {
         weights = ggml_reshape_2d(ctx0, weights, n_expert_used, n_tokens);
