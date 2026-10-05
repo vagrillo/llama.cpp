@@ -1518,6 +1518,19 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
             const char * e = getenv("LLAMA_MOE_PREFETCH_DEVICE");
             return e ? atoi(e) : 0;
         }();
+        // cache statica calda: ogni STATIC_EVERY token di decode, prefetch dei
+        // top-N esperti piu' frequenti per layer (N = LLAMA_MOE_PREFETCH_STATIC,
+        // default 24): restano residenti in VRAM e coprono le attivazioni ricorrenti
+        static const int  moe_static_every = []() {
+            const char * e = getenv("LLAMA_MOE_PREFETCH_STATIC_EVERY");
+            return e ? std::max(8, atoi(e)) : 64;
+        }();
+        static const int  moe_static_topn  = []() {
+            const char * e = getenv("LLAMA_MOE_PREFETCH_STATIC");
+            return e ? std::max(1, atoi(e)) : 24;
+        }();
+        static std::map<int, std::array<int32_t, 512>> moe_freq;   // layer -> conteggio esperto
+        static long moe_decode_tokens = 0;
         const bool do_log = moe_log_file && (moe_log_counter++ % moe_log_every) == 0;
 
         if (do_log || (moe_prefetch && ubatch.n_tokens == 1)) {
@@ -1556,9 +1569,13 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                 std::vector<int32_t> kept;
                 if (n_tok > 0) {
                     const int t = n_tok - 1;  // ultimo token dell'ubatch
+                    auto & fc = moe_freq[il];
                     for (int r = 0; r < n_used; ++r) {
                         if (wgt[r * n_tok + t] > 1e-6f) {
                             kept.push_back(ids[r * n_tok + t]);
+                            if (ids[r * n_tok + t] >= 0 && (size_t) ids[r * n_tok + t] < fc.size()) {
+                                fc[ids[r * n_tok + t]]++;
+                            }
                         }
                     }
                 }
@@ -1605,6 +1622,38 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                 line += '}'; line += '}'; line += '\n';
                 fputs(line.c_str(), moe_log_file);
                 fflush(moe_log_file);
+            }
+
+            // prefetch statico periodico: top-N per layer dalla statistica accumulata
+            if (moe_prefetch && ubatch.n_tokens == 1 &&
+                (moe_decode_tokens++ % moe_static_every) == 0) {
+#if defined(AGRILLA_HAS_CUDA)
+                for (const auto & [il, st] : res->moe_expert_logs) {
+                    auto it = moe_freq.find(il);
+                    if (it == moe_freq.end()) continue;
+                    const auto & fc = it->second;
+                    // top-N per count (selection semplice: N piccolo)
+                    std::vector<std::pair<int32_t, int32_t>> ranked;
+                    ranked.reserve(fc.size());
+                    for (size_t e = 0; e < fc.size(); ++e) {
+                        if (fc[e] > 0) ranked.push_back({(int32_t) e, fc[e]});
+                    }
+                    std::partial_sort(ranked.begin(),
+                                      ranked.begin() + std::min<size_t>(moe_static_topn, ranked.size()),
+                                      ranked.end(),
+                                      [](const auto & a, const auto & b) { return a.second > b.second; });
+                    const size_t take = std::min<size_t>(moe_static_topn, ranked.size());
+                    for (int k = 0; k < 3; ++k) {
+                        ggml_tensor * t = st.exps[k];
+                        if (!t || !t->data || t->nb[2] == 0) continue;
+                        const char * base = (const char *) t->data;
+                        for (size_t i = 0; i < take; ++i) {
+                            ggml_cuda_moe_prefetch(base + (size_t) ranked[i].first * t->nb[2],
+                                                   (size_t) t->nb[2], moe_prefetch_dev);
+                        }
+                    }
+                }
+#endif
             }
         }
     }
