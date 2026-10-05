@@ -4,7 +4,8 @@
 // la registrazione per-token degli esperti (LLAMA_MOE_EXPERT_LOG=file.jsonl)
 static bool ggml_moe_expert_log_enabled() {
     static const bool enabled = getenv("LLAMA_MOE_EXPERT_LOG") != nullptr ||
-                                getenv("LLAMA_MOE_EXPERT_PREFETCH") != nullptr;
+                                getenv("LLAMA_MOE_EXPERT_PREFETCH") != nullptr ||
+                                getenv("LLAMA_MOE_CHUNK_PREDICT") != nullptr;
     return enabled;
 }
 #include "llama-moe-expansion.h"
