@@ -1526,6 +1526,17 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                 std::vector<float>   wgt(n_used * n_tok);
                 ggml_backend_tensor_get(st.ids,     ids.data(), 0, ids.size() * sizeof(int32_t));
                 ggml_backend_tensor_get(st.weights, wgt.data(), 0, wgt.size() * sizeof(float));
+                // grafi con topologia diversa (es. passate MTP/nextn) possono lasciare
+                // i tensori non computati: readback di memoria non inizializzata.
+                // Guardia come per le stats: valori implausibili -> layer saltato
+                bool plausible = st.n_expert > 0;
+                for (size_t k = 0; plausible && k < ids.size(); ++k) {
+                    if (ids[k] < 0 || ids[k] >= st.n_expert) plausible = false;
+                }
+                for (size_t k = 0; plausible && k < wgt.size(); ++k) {
+                    if (!(wgt[k] >= 0.0f)) plausible = false;  // scarta NaN/negativi (niente tetto: w_scale puo' superare 1)
+                }
+                if (!plausible) continue;
                 if (!first_layer) line += ',';
                 first_layer = false;
                 line += Q; line += std::to_string(il); line += Q; line += ':'; line += '[';

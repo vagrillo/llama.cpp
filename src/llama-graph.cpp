@@ -2163,7 +2163,7 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
             ggml_build_forward_expand(gf, selected_experts);
             ggml_set_output(weights);
             ggml_build_forward_expand(gf, weights);
-            res->moe_expert_logs[il] = { selected_experts, weights, (int) weights->ne[2], (int) n_used };
+            res->moe_expert_logs[il] = { selected_experts, weights, (int) weights->ne[2], (int) n_used, (int) n_expert };
         }
     } else if (norm_w) {
         weights = ggml_reshape_2d(ctx0, weights, n_expert_used, n_tokens);
@@ -2193,7 +2193,7 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
         ggml_build_forward_expand(gf, selected_experts);
         ggml_set_output(weights);
         ggml_build_forward_expand(gf, weights);
-        res->moe_expert_logs[il] = { selected_experts, weights, (int) n_tokens, (int) n_used };
+        res->moe_expert_logs[il] = { selected_experts, weights, (int) n_tokens, (int) n_used, (int) n_expert };
     }
 
     //call early so that topk-moe can be used

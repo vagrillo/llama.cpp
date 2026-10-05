@@ -958,6 +958,7 @@ public:
         ggml_tensor * weights;  // [1, n_used, n_tokens] F32 post-expansion (>0 = kept)
         int           n_tokens;
         int           n_used;
+        int           n_expert; // per validare gli id letti (grafici MTP/nextn non computati)
     };
     std::map<int, llm_moe_log> moe_expert_logs;
 
