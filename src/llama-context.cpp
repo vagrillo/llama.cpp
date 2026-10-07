@@ -1706,7 +1706,9 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                     bten->data   = bs_data;
                     bten->buffer = ggml_backend_cpu_buffer_from_ptr(bs_data, ggml_nbytes(bten));
                     bs[slot] = bten;
-                    ggml_backend_tensor_set(bten, q.data(), 0, q.size());
+                    // tensore su CPU: memcpy diretto (tensor_set filtra per buffer
+                    // e qui il buffer from_ptr non serve al set)
+                    memcpy(bten->data, q.data(), q.size());
                 }
                 if (any && all_ok) {
                     g_moe_bracket_map[il] = bs;
