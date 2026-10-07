@@ -19,6 +19,9 @@ extern "C" void ggml_cuda_moe_prefetch(const void * ptr, size_t size, int device
 
 #include <cinttypes>
 #include <cmath>
+#include <array>
+#include <map>
+#include <cstring>
 #include <cstdlib>
 #include <cstring>
 #include <algorithm>
@@ -1558,7 +1561,162 @@ static bool moe_chunk_cb(ggml_tensor * t, bool ask, void * /*user_data*/) {
     return true;
 }
 
+// ===== moe-bracket (A1/A2): correzione bracket dell'errore di quantizzazione =====
+// LLAMA_MOE_BRACKET=1: al primo ubatch estrae da ogni tensore esperto lo step di
+// quantizzazione per blocco-32 (dai byte di scala del formato Q4_K/Q8_0/Q4_0) e
+// crea tensori Q8_0 [n_blocks, n_out, n_exp] su CPU. Il grafo aggiunge a ogni
+// esperto: alpha * mul_mat_id(bs, blocksums(x), ids) ~= stima di out_hi;
+// alpha=0.5 -> media (out_lo + out_hi)/2 (A1); alpha calibrabile (A2).
+std::map<int, std::array<ggml_tensor *, 4>> g_moe_bracket_map; // [0]=gate_up [1]=gate [2]=up [3]=down
+float g_moe_bracket_alpha = 0.5f;
+bool  g_moe_bracket_on    = false;
+
+static inline float moe_bs_hf16(const char * p) {
+    uint16_t h;
+    memcpy(&h, p, 2);
+    const uint32_t sign = (h & 0x8000u) << 16;
+    const uint32_t exp  = (h & 0x7C00u) >> 10;
+    const uint32_t man  = (h & 0x03FFu);
+    uint32_t bits;
+    if (exp == 0)       bits = sign;
+    else if (exp == 31) bits = sign | 0x7F800000u | (man << 13);
+    else                bits = sign | ((exp - 15u + 127u) << 23) | (man << 13);
+    float f;
+    memcpy(&f, &bits, 4);
+    return f;
+}
+
+static void moe_bs_get_scale_min_k4(int j, const uint8_t * q, uint8_t * d, uint8_t * m) {
+    if (j < 4) { *d = q[j] & 63; *m = q[j + 4] & 63; }
+    else { *d = (q[j+4] & 0xF) | ((q[j-4] >> 6) << 4); *m = (q[j+4] >> 4) | ((q[j] >> 6) << 4); }
+}
+
+static bool moe_bs_parse(const ggml_tensor * t, const char * host, std::vector<float> & steps) {
+    if (t->ne[0] % 32 != 0) return false;
+    const int64_t nb32 = t->ne[0] / 32;
+    steps.assign(nb32 * t->ne[1] * t->ne[2], 0.0f);
+    if (t->type == GGML_TYPE_Q4_K) {
+        const int64_t rsize = ggml_row_size(GGML_TYPE_Q4_K, t->ne[0]);
+        const int64_t nb256 = t->ne[0] / 256;
+        for (int64_t e = 0; e < t->ne[2]; ++e)
+        for (int64_t o = 0; o < t->ne[1]; ++o) {
+            const char * row = host + (e * t->ne[1] + o) * rsize;
+            float * out = steps.data() + (e * t->ne[1] + o) * nb32;
+            for (int64_t b = 0; b < nb256; ++b) {
+                const char * blk = row + b * 144;
+                const float d = moe_bs_hf16(blk);
+                for (int j = 0; j < 8; ++j) {
+                    uint8_t sc, m;
+                    moe_bs_get_scale_min_k4(j, (const uint8_t *) blk + 4, &sc, &m);
+                    out[8 * b + j] = d * (float) sc;
+                }
+            }
+        }
+    } else if (t->type == GGML_TYPE_Q8_0) {
+        const int64_t rsize = ggml_row_size(GGML_TYPE_Q8_0, t->ne[0]);
+        for (int64_t e = 0; e < t->ne[2]; ++e)
+        for (int64_t o = 0; o < t->ne[1]; ++o) {
+            const char * row = host + (e * t->ne[1] + o) * rsize;
+            float * out = steps.data() + (e * t->ne[1] + o) * nb32;
+            for (int64_t b = 0; b < nb32; ++b) out[b] = moe_bs_hf16(row + b * 34);
+        }
+    } else if (t->type == GGML_TYPE_Q4_0) {
+        const int64_t rsize = ggml_row_size(GGML_TYPE_Q4_0, t->ne[0]);
+        for (int64_t e = 0; e < t->ne[2]; ++e)
+        for (int64_t o = 0; o < t->ne[1]; ++o) {
+            const char * row = host + (e * t->ne[1] + o) * rsize;
+            float * out = steps.data() + (e * t->ne[1] + o) * nb32;
+            for (int64_t b = 0; b < nb32; ++b) out[b] = moe_bs_hf16(row + b * 18);
+        }
+    } else {
+        return false;
+    }
+    return true;
+}
+
+static int64_t moe_bs_q8_quantize(const float * steps, int64_t n, char * dst) {
+    const int64_t nb = n / 32;
+    for (int64_t b = 0; b < nb; ++b) {
+        const float * src = steps + b * 32;
+        float amax = 0.0f;
+        for (int i = 0; i < 32; ++i) amax = std::max(amax, fabsf(src[i]));
+        const float d = amax / 127.0f;
+        uint16_t dh;
+        {
+            float f = d;
+            uint32_t bits;
+            memcpy(&bits, &f, 4);
+            const uint32_t lsb = (bits >> 16) & 1u;
+            uint32_t h = ((bits >> 16) & 0x8000u) | (((bits >> 23) - 127 + 15) << 10) | ((bits >> 13) & 0x3FFu);
+            h += lsb;
+            memcpy(&dh, &h, 2);
+        }
+        memcpy(dst + b * 34, &dh, 2);
+        int8_t * q = (int8_t *) (dst + b * 34 + 2);
+        const float id = (d == 0.0f) ? 0.0f : 1.0f / d;
+        for (int i = 0; i < 32; ++i) q[i] = (int8_t) roundf(src[i] * id);
+    }
+    return nb * 34;
+}
+
 llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, llm_graph_type gtype, llama_memory_context_i * mctx, ggml_status & ret) {
+    // moe-bracket: estrazione una tantum degli step per blocco dai tensori esperti
+    static bool moe_bracket_init = false;
+    if (!moe_bracket_init) {
+        moe_bracket_init = true;
+        if (getenv("LLAMA_MOE_BRACKET")) {
+            g_moe_bracket_on = true;
+            if (const char * a = getenv("LLAMA_MOE_BRACKET_ALPHA")) g_moe_bracket_alpha = atof(a);
+            if (!moe_bracket_ctx) {
+                ggml_init_params ip = { /*mem_size*/ 64 * 1024 * 1024, /*mem_buffer*/ nullptr, /*no_alloc*/ false };
+                moe_bracket_ctx = ggml_init(ip);
+            }
+            int nok = 0, nskip = 0;
+            for (int il = 0; il < (int) model.layers.size(); ++il) {
+                const auto & L = model.layers[il];
+                const std::pair<ggml_tensor *, int> src[4] = {
+                    { L.ffn_gate_up_exps, 0 }, { L.ffn_gate_exps, 1 },
+                    { L.ffn_up_exps, 2 }, { L.ffn_down_exps, 3 },
+                };
+                bool any = false, all_ok = true;
+                std::array<ggml_tensor *, 4> bs = { nullptr, nullptr, nullptr, nullptr };
+                for (const auto & [t, slot] : src) {
+                    if (!t) continue;
+                    any = true;
+                    if (t->type != GGML_TYPE_Q4_K && t->type != GGML_TYPE_Q8_0 && t->type != GGML_TYPE_Q4_0) {
+                        LLAMA_LOG_WARN("moe-bracket: layer %d tipo %s non supportato, layer escluso dal bracket\n",
+                                       il, ggml_type_name(t->type));
+                        all_ok = false; break;
+                    }
+                    if (t->ne[0] % 32 != 0) { all_ok = false; break; }
+                    std::vector<char> host(ggml_nbytes(t));
+                    ggml_backend_tensor_get(t, host.data(), 0, host.size());
+                    std::vector<float> steps;
+                    if (!moe_bs_parse(t, host.data(), steps)) { all_ok = false; break; }
+                    const int64_t nb32 = t->ne[0] / 32;
+                    std::vector<char> q((nb32 / 32) * 34 * t->ne[1] * t->ne[2]);
+                    for (int64_t e = 0; e < t->ne[2]; ++e)
+                    for (int64_t o = 0; o < t->ne[1]; ++o) {
+                        moe_bs_q8_quantize(steps.data() + (e * t->ne[1] + o) * nb32, nb32,
+                                           q.data() + (e * t->ne[1] + o) * (nb32 / 32) * 34);
+                    }
+                    ggml_tensor * bten = ggml_new_tensor_3d(moe_bracket_ctx, GGML_TYPE_Q8_0, nb32, t->ne[1], t->ne[2]);
+                    bs[slot] = bten;
+                    ggml_backend_tensor_set(bten, q.data(), 0, q.size());
+                }
+                if (any && all_ok) {
+                    g_moe_bracket_map[il] = bs;
+                    nok++;
+                } else if (any) {
+                    nskip++;
+                }
+            }
+            LLAMA_LOG_INFO("%s: moe-bracket attivo (alpha %.2f): %d layer con bracket, %d esclusi\n",
+                           __func__, g_moe_bracket_alpha, nok, nskip);
+        }
+    }
+
+
     if (mctx && !mctx->apply()) {
         LLAMA_LOG_ERROR("%s: failed to apply memory context\n", __func__);
         ret = GGML_STATUS_FAILED;

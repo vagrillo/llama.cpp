@@ -279,6 +279,9 @@ private:
 
     const llama_model & model;
 
+    // moe-bracket: metadata context per i tensori Q8_0 degli step per blocco
+    ggml_context * moe_bracket_ctx = nullptr;
+
     llama_cparams cparams;
 
     llama_adapter_cvec_ptr  cvec;

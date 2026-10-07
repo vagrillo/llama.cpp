@@ -34,6 +34,11 @@ static bool ggml_moe_expert_log_enabled() {
 #include <string>
 #include <unordered_set>
 
+// moe-bracket (definito in llama-context.cpp): step per blocco esperti
+extern std::map<int, std::array<ggml_tensor *, 4>> g_moe_bracket_map;
+extern float g_moe_bracket_alpha;
+extern bool  g_moe_bracket_on;
+
 // dedup helpers
 
 static ggml_tensor * build_attn_inp_kq_mask(
@@ -2228,6 +2233,14 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
             gate_up = ggml_add_id(ctx0, gate_up, gate_up_exps_b, selected_experts);
             cb(gate_up, "ffn_moe_gate_up_biased", il);
         }
+        // moe-bracket: stima out_hi = out_lo + alpha * mul_mat_id(steps, blocksums(x))
+        if (g_moe_bracket_on && il >= 0 && g_moe_bracket_map.count(il) && cur->ne[0] % 32 == 0) {
+            ggml_tensor * S = ggml_sum_rows(ctx0, ggml_reshape_4d(ctx0, cur, 32, cur->ne[0]/32, cur->ne[1], cur->ne[2]));
+            S = ggml_reshape_3d(ctx0, S, cur->ne[0]/32, cur->ne[1], cur->ne[2]);
+            ggml_tensor * corr = ggml_scale(ctx0, ggml_mul_mat_id(ctx0, g_moe_bracket_map[il][0], S, selected_experts), g_moe_bracket_alpha);
+            gate_up = ggml_add(ctx0, gate_up, corr);
+            cb(gate_up, "ffn_moe_gate_up_bracket", il);
+        }
 
         const int64_t n_ff = gate_up->ne[0] / 2;
         cur = ggml_view_3d(ctx0, gate_up, n_ff, gate_up->ne[1], gate_up->ne[2], gate_up->nb[1], gate_up->nb[2], 0);
@@ -2247,12 +2260,29 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
             up = ggml_add_id(ctx0, up, up_exps_b, selected_experts);
             cb(up, "ffn_moe_up_biased", il);
         }
+        // moe-bracket: up
+        if (g_moe_bracket_on && il >= 0 && g_moe_bracket_map.count(il) && cur->ne[0] % 32 == 0) {
+            ggml_tensor * S = ggml_sum_rows(ctx0, ggml_reshape_4d(ctx0, cur, 32, cur->ne[0]/32, cur->ne[1], cur->ne[2]));
+            S = ggml_reshape_3d(ctx0, S, cur->ne[0]/32, cur->ne[1], cur->ne[2]);
+            ggml_tensor * corr = ggml_scale(ctx0, ggml_mul_mat_id(ctx0, g_moe_bracket_map[il][2], S, selected_experts), g_moe_bracket_alpha);
+            up = ggml_add(ctx0, up, corr);
+            cb(up, "ffn_moe_up_bracket", il);
+        }
 
+        ggml_tensor * moe_gate_in = cur;
         if (gate_exps) {
             cur = build_lora_mm_id(gate_exps, cur, selected_experts, gate_exps_s); // [n_ff, n_expert_used, n_tokens]
             cb(cur, "ffn_moe_gate", il);
         } else {
             cur = up;
+        }
+        // moe-bracket: gate
+        if (g_moe_bracket_on && il >= 0 && g_moe_bracket_map.count(il) && moe_gate_in->ne[0] % 32 == 0) {
+            ggml_tensor * S = ggml_sum_rows(ctx0, ggml_reshape_4d(ctx0, moe_gate_in, 32, moe_gate_in->ne[0]/32, moe_gate_in->ne[1], moe_gate_in->ne[2]));
+            S = ggml_reshape_3d(ctx0, S, moe_gate_in->ne[0]/32, moe_gate_in->ne[1], moe_gate_in->ne[2]);
+            ggml_tensor * corr = ggml_scale(ctx0, ggml_mul_mat_id(ctx0, g_moe_bracket_map[il][1], S, selected_experts), g_moe_bracket_alpha);
+            cur = ggml_add(ctx0, cur, corr);
+            cb(cur, "ffn_moe_gate_bracket", il);
         }
 
         if (gate_exps_s) {
@@ -2351,6 +2381,16 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
     }
 
     experts = build_lora_mm_id(down_exps, cur, selected_experts, down_exps_s); // [n_embd, n_used, n_tokens]
+
+    // moe-bracket: down
+    if (g_moe_bracket_on && il >= 0 && g_moe_bracket_map.count(il) && cur->ne[0] % 32 == 0) {
+        ggml_tensor * S = ggml_sum_rows(ctx0, ggml_reshape_4d(ctx0, cur, 32, cur->ne[0]/32, cur->ne[1], cur->ne[2]));
+        S = ggml_reshape_3d(ctx0, S, cur->ne[0]/32, cur->ne[1], cur->ne[2]);
+        ggml_tensor * corr = ggml_scale(ctx0, ggml_mul_mat_id(ctx0, g_moe_bracket_map[il][3], S, selected_experts), g_moe_bracket_alpha);
+        experts = ggml_add(ctx0, experts, corr);
+        cb(experts, "ffn_moe_down_bracket", il);
+    }
+
     cb(experts, "ffn_moe_down", il);
 
     if (down_exps_s) {
