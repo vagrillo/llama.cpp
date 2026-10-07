@@ -1668,7 +1668,7 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
             g_moe_bracket_on = true;
             if (const char * a = getenv("LLAMA_MOE_BRACKET_ALPHA")) g_moe_bracket_alpha = atof(a);
             if (!moe_bracket_ctx) {
-                ggml_init_params ip = { /*mem_size*/ 64 * 1024 * 1024, /*mem_buffer*/ nullptr, /*no_alloc*/ false };
+                ggml_init_params ip = { /*mem_size*/ 64 * 1024 * 1024, /*mem_buffer*/ nullptr, /*no_alloc*/ true };
                 moe_bracket_ctx = ggml_init(ip);
             }
             int nok = 0, nskip = 0;
@@ -1701,6 +1701,10 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                                            q.data() + (e * t->ne[1] + o) * (nb32 / 32) * 34);
                     }
                     ggml_tensor * bten = ggml_new_tensor_3d(moe_bracket_ctx, GGML_TYPE_Q8_0, nb32, t->ne[1], t->ne[2]);
+                    // buffer CPU manuale: senza buffer il grafo crasha al warmup
+                    void * bs_data = malloc(ggml_nbytes(bten));
+                    bten->data   = bs_data;
+                    bten->buffer = ggml_backend_cpu_buffer_from_ptr(bs_data, ggml_nbytes(bten));
                     bs[slot] = bten;
                     ggml_backend_tensor_set(bten, q.data(), 0, q.size());
                 }
