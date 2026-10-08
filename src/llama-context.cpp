@@ -1702,7 +1702,8 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                     }
                     ggml_tensor * bten = ggml_new_tensor_3d(moe_bracket_ctx, GGML_TYPE_Q8_0, nb32, t->ne[1], t->ne[2]);
                     // buffer CPU manuale: senza buffer il grafo crasha al warmup
-                    void * bs_data = malloc(ggml_nbytes(bten));
+                    void * bs_data = nullptr;
+                    if (posix_memalign(&bs_data, 64, ggml_nbytes(bten)) != 0) { all_ok = false; break; }
                     bten->data   = bs_data;
                     bten->buffer = ggml_backend_cpu_buffer_from_ptr(bs_data, ggml_nbytes(bten));
                     bs[slot] = bten;
