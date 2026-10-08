@@ -2237,6 +2237,7 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
         if (g_moe_bracket_on && il >= 0 && g_moe_bracket_map.count(il) && cur->ne[0] % 32 == 0) {
             ggml_tensor * S = ggml_sum_rows(ctx0, ggml_reshape_4d(ctx0, cur, 32, cur->ne[0]/32, cur->ne[1], cur->ne[2]));
             S = ggml_reshape_3d(ctx0, S, cur->ne[0]/32, cur->ne[1], cur->ne[2]);
+            fprintf(stderr, "BRACKETDBG il=%d sito=gate_up bs0=%p buf=%p\n", il, (void*)g_moe_bracket_map[il][0], g_moe_bracket_map[il][0] ? (void*)g_moe_bracket_map[il][0]->buffer : nullptr);
             ggml_tensor * corr = ggml_scale(ctx0, ggml_mul_mat_id(ctx0, g_moe_bracket_map[il][0], S, selected_experts), g_moe_bracket_alpha);
             gate_up = ggml_add(ctx0, gate_up, corr);
             cb(gate_up, "ffn_moe_gate_up_bracket", il);
@@ -2264,6 +2265,7 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
         if (g_moe_bracket_on && il >= 0 && g_moe_bracket_map.count(il) && cur->ne[0] % 32 == 0) {
             ggml_tensor * S = ggml_sum_rows(ctx0, ggml_reshape_4d(ctx0, cur, 32, cur->ne[0]/32, cur->ne[1], cur->ne[2]));
             S = ggml_reshape_3d(ctx0, S, cur->ne[0]/32, cur->ne[1], cur->ne[2]);
+            fprintf(stderr, "BRACKETDBG il=%d sito=up bs2=%p buf=%p\n", il, (void*)g_moe_bracket_map[il][2], g_moe_bracket_map[il][2] ? (void*)g_moe_bracket_map[il][2]->buffer : nullptr);
             ggml_tensor * corr = ggml_scale(ctx0, ggml_mul_mat_id(ctx0, g_moe_bracket_map[il][2], S, selected_experts), g_moe_bracket_alpha);
             up = ggml_add(ctx0, up, corr);
             cb(up, "ffn_moe_up_bracket", il);
@@ -2280,6 +2282,7 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
         if (g_moe_bracket_on && il >= 0 && g_moe_bracket_map.count(il) && moe_gate_in->ne[0] % 32 == 0) {
             ggml_tensor * S = ggml_sum_rows(ctx0, ggml_reshape_4d(ctx0, moe_gate_in, 32, moe_gate_in->ne[0]/32, moe_gate_in->ne[1], moe_gate_in->ne[2]));
             S = ggml_reshape_3d(ctx0, S, moe_gate_in->ne[0]/32, moe_gate_in->ne[1], moe_gate_in->ne[2]);
+            fprintf(stderr, "BRACKETDBG il=%d sito=gate bs1=%p buf=%p\n", il, (void*)g_moe_bracket_map[il][1], g_moe_bracket_map[il][1] ? (void*)g_moe_bracket_map[il][1]->buffer : nullptr);
             ggml_tensor * corr = ggml_scale(ctx0, ggml_mul_mat_id(ctx0, g_moe_bracket_map[il][1], S, selected_experts), g_moe_bracket_alpha);
             cur = ggml_add(ctx0, cur, corr);
             cb(cur, "ffn_moe_gate_bracket", il);
@@ -2386,7 +2389,8 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
     if (g_moe_bracket_on && il >= 0 && g_moe_bracket_map.count(il) && cur->ne[0] % 32 == 0) {
         ggml_tensor * S = ggml_sum_rows(ctx0, ggml_reshape_4d(ctx0, cur, 32, cur->ne[0]/32, cur->ne[1], cur->ne[2]));
         S = ggml_reshape_3d(ctx0, S, cur->ne[0]/32, cur->ne[1], cur->ne[2]);
-        ggml_tensor * corr = ggml_scale(ctx0, ggml_mul_mat_id(ctx0, g_moe_bracket_map[il][3], S, selected_experts), g_moe_bracket_alpha);
+        fprintf(stderr, "BRACKETDBG il=%d sito=down bs3=%p buf=%p\n", il, (void*)g_moe_bracket_map[il][3], g_moe_bracket_map[il][3] ? (void*)g_moe_bracket_map[il][3]->buffer : nullptr);
+            ggml_tensor * corr = ggml_scale(ctx0, ggml_mul_mat_id(ctx0, g_moe_bracket_map[il][3], S, selected_experts), g_moe_bracket_alpha);
         experts = ggml_add(ctx0, experts, corr);
         cb(experts, "ffn_moe_down_bracket", il);
     }
