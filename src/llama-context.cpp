@@ -1595,8 +1595,8 @@ static bool moe_bs_parse(const ggml_tensor * t, const char * host, std::vector<f
     if (t->ne[0] % 32 != 0) return false;
     const int64_t nb32 = t->ne[0] / 32;
     steps.assign(nb32 * t->ne[1] * t->ne[2], 0.0f);
-    if (t->type == GGML_TYPE_Q4_K) {
-        const int64_t rsize = ggml_row_size(GGML_TYPE_Q4_K, t->ne[0]);
+    if (t->type == GGML_TYPE_Q4_K || t->type == GGML_TYPE_Q5_K) {
+        const int64_t rsize = ggml_row_size(t->type, t->ne[0]);
         const int64_t nb256 = t->ne[0] / 256;
         for (int64_t e = 0; e < t->ne[2]; ++e)
         for (int64_t o = 0; o < t->ne[1]; ++o) {
@@ -1683,7 +1683,7 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                 for (const auto & [t, slot] : src) {
                     if (!t) continue;
                     any = true;
-                    if (t->type != GGML_TYPE_Q4_K && t->type != GGML_TYPE_Q8_0 && t->type != GGML_TYPE_Q4_0) {
+                    if (t->type != GGML_TYPE_Q4_K && t->type != GGML_TYPE_Q5_K && t->type != GGML_TYPE_Q8_0 && t->type != GGML_TYPE_Q4_0) {
                         LLAMA_LOG_WARN("moe-bracket: layer %d tipo %s non supportato, layer escluso dal bracket\n",
                                        il, ggml_type_name(t->type));
                         all_ok = false; break;
