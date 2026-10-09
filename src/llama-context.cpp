@@ -2020,6 +2020,33 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
     // (interval: cparams.moe_stats_every, env LLAMA_MOE_EXPERT_STATS_EVERY, 0 = off)
     // skipped during warmup: probe/fitted graphs may leave some splits (hence
     // the count tensors) uncomputed, which would read back garbage
+    extern float g_moe_reduce_factor;
+extern bool  g_moe_reduce_on;
+
+// moe-reduce: statistiche esperti mantenuti per layer (media ogni 32 ubatch)
+    if (g_moe_reduce_factor > 0.0f && !cparams.warmup && !res->moe_reduce_kept.empty()) {
+        static std::map<int, double> moe_reduce_sum;
+        static std::map<int, int64_t> moe_reduce_tok;
+        static int64_t moe_reduce_ub = 0;
+        for (const auto & [il, t] : res->moe_reduce_kept) {
+            std::vector<float> k(ggml_nbytes(t) / sizeof(float));
+            ggml_backend_tensor_get(t, k.data(), 0, k.size() * sizeof(float));
+            for (float v : k) { moe_reduce_sum[il] += v; }
+            moe_reduce_tok[il] += t->ne[1];
+        }
+        if (++moe_reduce_ub % 32 == 0) {
+            std::string line = "moe-reduce: esperti mantenuti avg:";
+            for (const auto & [il, s] : moe_reduce_sum) {
+                const int64_t tok = moe_reduce_tok[il];
+                line += " L" + std::to_string(il) + ": " + std::to_string(tok ? s / tok : 0.0).substr(0, 5);
+            }
+            LLAMA_LOG_INFO("%s (ultimi 32 ubatch)\n", line.c_str());
+            moe_reduce_sum.clear();
+            moe_reduce_tok.clear();
+            moe_reduce_ub = 0;
+        }
+    }
+
     if (cparams.moe_stats_every > 0 && !cparams.warmup && !res->moe_expert_counts.empty()) {
         if (moe_stats_acc.empty()) {
             moe_stats_acc.resize(model.hparams.n_layer(), 0.0);

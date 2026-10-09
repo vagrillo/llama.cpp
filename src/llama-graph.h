@@ -965,6 +965,9 @@ public:
     };
     std::map<int, llm_moe_log> moe_expert_logs;
 
+    // moe-reduce: per-token kept-expert counts [1, n_tokens] f32 per layer
+    std::map<int, ggml_tensor *> moe_reduce_kept;
+
     std::vector<llm_graph_input_ptr> inputs;
     std::vector<llm_graph_fused_node> fused_nodes;
 

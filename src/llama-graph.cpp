@@ -1913,6 +1913,22 @@ ggml_tensor * llm_graph_context::build_ffn(
     return cur;
 }
 
+// ===== moe-reduce: potatura dinamica dei punteggi bassi (inverso dell'expansion) =====
+// LLAMA_MOE_REDUCE=X (0=off, es. 0.995): dopo la selezione top-K mantieni solo
+// gli esperti con peso >= X * peso(top-1), poi rinormalizza. Statistiche degli
+// esperti mantenuti per layer in moe_reduce_kept (lette in llama-context).
+float g_moe_reduce_factor = 0.0f;        // condivise con llama-context (statistiche)
+int   g_moe_reduce_lstart = 0;
+int   g_moe_reduce_lend   = -1;          // -1 = tutti
+static bool  g_moe_reduce_init   = false;
+static void moe_reduce_init_from_env() {
+    if (g_moe_reduce_init) return;
+    g_moe_reduce_init = true;
+    if (const char * e = getenv("LLAMA_MOE_REDUCE")) g_moe_reduce_factor = atof(e);
+    if (const char * e = getenv("LLAMA_MOE_REDUCE_START")) g_moe_reduce_lstart = atoi(e);
+    if (const char * e = getenv("LLAMA_MOE_REDUCE_END"))   g_moe_reduce_lend   = atoi(e);
+}
+
 ggml_tensor * llm_graph_context::build_moe_ffn(
          ggml_tensor * cur,
          ggml_tensor * gate_inp,
@@ -2187,6 +2203,28 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
         cb(weights, "ffn_moe_weights_norm", il);
 
         weights = ggml_reshape_3d(ctx0, weights, 1, n_expert_used, n_tokens);
+    }
+
+    // moe-reduce: potatura dinamica (solo ramo stock; l'expansione ha la sua scala)
+    moe_reduce_init_from_env();
+    if (g_moe_reduce_factor > 0.0f && il >= g_moe_reduce_lstart &&
+        (g_moe_reduce_lend < 0 || il <= g_moe_reduce_lend)) {
+        ggml_tensor * w2 = ggml_reshape_2d(ctx0, weights, n_expert_used, n_tokens);
+        // top1 value per token: ordinamento discendente + estrazione della prima riga
+        ggml_tensor * srt_idx = ggml_argsort(ctx0, w2, GGML_SORT_ORDER_DESC);
+        ggml_tensor * srt_val = ggml_get_rows(ctx0, w2, srt_idx);   // [n_used, n_tokens] ordinato desc
+        ggml_tensor * top1    = ggml_view_1d(ctx0, srt_val, n_tokens, 0); // [n_tokens]
+        ggml_tensor * thr     = ggml_scale(ctx0, top1, g_moe_reduce_factor);
+        ggml_tensor * mask    = ggml_step(ctx0, ggml_sub(ctx0, w2, ggml_reshape_2d(ctx0, thr, 1, n_tokens)));
+        ggml_tensor * masked  = ggml_mul(ctx0, w2, mask);
+        ggml_tensor * msum    = ggml_clamp(ctx0, ggml_sum_rows(ctx0, masked), 1e-9f, INFINITY);
+        w2 = ggml_div(ctx0, masked, msum);
+        // conteggio esperti mantenuti per token (statistiche per layer)
+        ggml_tensor * kept = ggml_sum_rows(ctx0, mask); // [1, n_tokens]
+        ggml_set_output(kept);
+        ggml_build_forward_expand(gf, kept);
+        res->moe_reduce_kept[il] = kept;
+        weights = ggml_reshape_3d(ctx0, w2, 1, n_expert_used, n_tokens);
     }
     if (w_scale != 0.0f && w_scale != 1.0f) {
         weights = ggml_scale(ctx0, weights, w_scale);
