@@ -2209,13 +2209,22 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
     moe_reduce_init_from_env();
     if (g_moe_reduce_factor > 0.0f && il >= g_moe_reduce_lstart &&
         (g_moe_reduce_lend < 0 || il <= g_moe_reduce_lend)) {
-        ggml_tensor * w2 = ggml_reshape_2d(ctx0, weights, n_expert_used, n_tokens);
+        // dimensioni reali del tensore: nell'expansion le righe sono n_used dinamico
+        const int64_t mr_rows = weights->ne[1];
+        const int64_t mr_tok  = weights->ne[2];
+        ggml_tensor * w2 = ggml_reshape_2d(ctx0, weights, mr_rows, mr_tok);
         // top1 value per token: ordinamento discendente + estrazione della prima riga
-        ggml_tensor * srt_idx = ggml_argsort(ctx0, w2, GGML_SORT_ORDER_DESC);
-        ggml_tensor * srt_val = ggml_get_rows(ctx0, w2, srt_idx);   // [n_used, n_tokens] ordinato desc
-        ggml_tensor * top1    = ggml_view_1d(ctx0, srt_val, n_tokens, 0); // [n_tokens]
+        ggml_tensor * srt_idx = ggml_argsort(ctx0, w2, GGML_SORT_ORDER_DESC);   // [rows, n_tok]
+        // top1 INDEX per token: prima riga dell'argsort → [1, n_tok]
+        ggml_tensor * top1_idx = ggml_view_1d(ctx0, srt_idx, mr_tok, 0);
+        top1_idx = ggml_reshape_2d(ctx0, top1_idx, 1, mr_tok);
+        // top1 VALUE: get_rows con src 3D [rows, 1, n_tok] e ids 2D [1, n_tok]
+        ggml_tensor * w2_3d = ggml_reshape_3d(ctx0, w2, mr_rows, 1, mr_tok);
+        ggml_tensor * top1_row = ggml_get_rows(ctx0, w2_3d, top1_idx);   // [rows, 1, n_tok]
+        top1_row = ggml_reshape_2d(ctx0, top1_row, mr_rows, mr_tok);
+        ggml_tensor * top1    = ggml_view_1d(ctx0, top1_row, mr_tok, 0); // [n_tokens]
         ggml_tensor * thr     = ggml_scale(ctx0, top1, g_moe_reduce_factor);
-        ggml_tensor * mask    = ggml_step(ctx0, ggml_sub(ctx0, w2, ggml_reshape_2d(ctx0, thr, 1, n_tokens)));
+        ggml_tensor * mask    = ggml_step(ctx0, ggml_sub(ctx0, w2, ggml_reshape_2d(ctx0, thr, 1, mr_tok)));
         ggml_tensor * masked  = ggml_mul(ctx0, w2, mask);
         ggml_tensor * msum    = ggml_clamp(ctx0, ggml_sum_rows(ctx0, masked), 1e-9f, INFINITY);
         w2 = ggml_div(ctx0, masked, msum);
@@ -2224,7 +2233,8 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
         ggml_set_output(kept);
         ggml_build_forward_expand(gf, kept);
         res->moe_reduce_kept[il] = kept;
-        weights = ggml_reshape_3d(ctx0, w2, 1, n_expert_used, n_tokens);
+        // dimensioni reali di w2: nell'expansion le righe sono n_used dinamico
+        weights = ggml_reshape_3d(ctx0, w2, 1, w2->ne[0], w2->ne[1]);
     }
     if (w_scale != 0.0f && w_scale != 1.0f) {
         weights = ggml_scale(ctx0, weights, w_scale);
