@@ -2021,9 +2021,9 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
     // skipped during warmup: probe/fitted graphs may leave some splits (hence
     // the count tensors) uncomputed, which would read back garbage
     extern float g_moe_reduce_factor;
-extern bool  g_moe_reduce_on;
 
-// moe-reduce: statistiche esperti mantenuti per layer (media ogni 32 ubatch)
+// moe-reduce: statistiche esperti mantenuti per layer (media ogni 32 build di grafo;
+// i token di decode riusano il grafo e non ripassano di qui, come per l'expansion)
     if (g_moe_reduce_factor > 0.0f && !cparams.warmup && !res->moe_reduce_kept.empty()) {
         static std::map<int, double> moe_reduce_sum;
         static std::map<int, int64_t> moe_reduce_tok;
@@ -2040,7 +2040,7 @@ extern bool  g_moe_reduce_on;
                 const int64_t tok = moe_reduce_tok[il];
                 line += " L" + std::to_string(il) + ": " + std::to_string(tok ? s / tok : 0.0).substr(0, 5);
             }
-            LLAMA_LOG_INFO("%s (ultimi 32 ubatch)\n", line.c_str());
+            LLAMA_LOG_INFO("%s (ultime 32 build)\n", line.c_str());
             moe_reduce_sum.clear();
             moe_reduce_tok.clear();
             moe_reduce_ub = 0;

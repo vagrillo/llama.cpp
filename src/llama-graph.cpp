@@ -2211,26 +2211,32 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
         (g_moe_reduce_lend < 0 || il <= g_moe_reduce_lend)) {
         const int64_t mr_rows = weights->ne[1];
         const int64_t mr_tok  = weights->ne[2];
-        ggml_tensor * w2 = ggml_reshape_2d(ctx0, weights, mr_rows, mr_tok);
-        // top1 value per token: argsort discendente per colonna, estrai la prima riga
-        ggml_tensor * srt_idx = ggml_argsort(ctx0, w2, GGML_SORT_ORDER_DESC);   // [rows, n_tok]
-        ggml_tensor * top1_idx = ggml_view_1d(ctx0, srt_idx, mr_tok, 0);        // [n_tok]
-        ggml_tensor * top1_val = ggml_view_1d(ctx0,
-                ggml_get_rows(ctx0, w2, top1_idx), mr_tok, 0);                  // [n_tok] peso del top-1
-        ggml_tensor * thr  = ggml_scale(ctx0, top1_val, g_moe_reduce_factor);
-        ggml_tensor * mask    = ggml_step(ctx0, ggml_sub(ctx0, w2, thr));
-        fprintf(stderr, "MOEDBG2 il=%d: w2 ne=[%lld,%lld] thr ne=[%lld,%lld] mask ne=[%lld,%lld]\n",
-                il, (long long) w2->ne[0], (long long) w2->ne[1],
-                (long long) thr->ne[0], (long long) thr->ne[1],
-                (long long) mask->ne[0], (long long) mask->ne[1]);
+        ggml_tensor * w2 = ggml_reshape_2d(ctx0, weights, mr_rows, mr_tok);     // [rows, tok]
+        ggml_tensor * w1 = ggml_reshape_3d(ctx0, w2, 1, mr_rows, mr_tok);       // [1, rows, tok]
+        // top1 value per token: argsort discendente per colonna, poi gather dei
+        // valori con gli id 2D (stesso pattern di get_rows(probs, selected_experts)
+        // sopra) e vista della riga 0 = peso del top-1 per token
+        ggml_tensor * srt_idx = ggml_argsort(ctx0, w2, GGML_SORT_ORDER_DESC);   // [rows, tok]
+        ggml_tensor * srt_val = ggml_get_rows(ctx0, w1, srt_idx);               // [1, rows, tok]
+        ggml_tensor * top1_val = ggml_view_2d(ctx0, srt_val, 1, mr_tok, srt_val->nb[2], 0); // [1, tok]
+        // scale esige src0 contiguo: la vista va materializzata
+        ggml_tensor * thr = ggml_scale(ctx0, ggml_cont(ctx0, top1_val), g_moe_reduce_factor); // [1, tok]
+        // mask: 1 dove w2 >= X * top1 (step di w2 - thr, broadcast [1, tok])
+        ggml_tensor * mask = ggml_step(ctx0, ggml_sub(ctx0, w2, thr));          // [rows, tok]
         ggml_tensor * masked  = ggml_mul(ctx0, w2, mask);
-        ggml_tensor * msum = ggml_clamp(ctx0, ggml_sum_rows(ctx0, masked), 1e-9f, INFINITY);
-        w2 = ggml_div(ctx0, masked, msum);
+        // rinormalizzazione massa-preservante: gli esperti mantenuti si dividono
+        // in proporzione la massa degli esclusi, la somma totale resta quella
+        // originale (identita' esatta quando la mask non esclude nulla; corretta
+        // sia per arch con norm_w=false — prob. softmax grezze, es. OLMoE —
+        // sia per arch gia' rinormalizzati a somma 1)
+        ggml_tensor * full_sum = ggml_sum_rows(ctx0, w2);                                     // [1, tok]
+        ggml_tensor * kept_sum = ggml_clamp(ctx0, ggml_sum_rows(ctx0, masked), 1e-9f, INFINITY); // [1, tok]
+        w2 = ggml_mul(ctx0, masked, ggml_div(ctx0, full_sum, kept_sum));
         ggml_tensor * kept = ggml_sum_rows(ctx0, mask); // [1, n_tokens] esperti mantenuti
         ggml_set_output(kept);
         ggml_build_forward_expand(gf, kept);
         res->moe_reduce_kept[il] = kept;
-        weights = ggml_reshape_3d(ctx0, w2, 1, w2->ne[0], w2->ne[1]);
+        weights = ggml_reshape_3d(ctx0, w2, 1, mr_rows, mr_tok);
     }
     if (w_scale != 0.0f && w_scale != 1.0f) {
         weights = ggml_scale(ctx0, weights, w_scale);
