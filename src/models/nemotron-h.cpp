@@ -113,15 +113,21 @@ void llama_model_nemotron_h::load_arch_tensors(llama_model_loader & ml) {
                     : hparams.n_ff(i) / (int64_t)hparams.n_expert_used(i);
                 const int64_t n_ff_shexp = hparams.n_ff_shexp;
 
-                layer.ffn_gate_inp    = create_tensor(tn(LLM_TENSOR_FFN_GATE_INP,  "weight", i), { n_embd, n_expert}, trunk_flags);
-                layer.ffn_exp_probs_b = create_tensor(tn(LLM_TENSOR_FFN_EXP_PROBS_B, "bias", i), {n_expert         }, trunk_flags);
+                // Nemotron 3.5 Bolt LatentMoE: il pool di esperti e' ETEROGENEO
+                // per layer (la KV expert_count e' la somma) -> la dimensione
+                // autorevole sono i dim reali del tensore nel GGUF
+                const std::string gate_inp_name = "blk." + std::to_string(i) + ".ffn_gate_inp.weight";
+                ggml_tensor * gate_inp_meta = ml.get_tensor_meta(gate_inp_name.c_str());
+                const int64_t n_expert_i = gate_inp_meta ? gate_inp_meta->ne[1] : n_expert;
+                layer.ffn_gate_inp    = create_tensor(tn(LLM_TENSOR_FFN_GATE_INP,  "weight", i), { n_embd, n_expert_i}, trunk_flags);
+                layer.ffn_exp_probs_b = create_tensor(tn(LLM_TENSOR_FFN_EXP_PROBS_B, "bias", i), {n_expert_i         }, trunk_flags);
 
                 // MoE branch
                 layer.ffn_latent_down = create_tensor(tn(LLM_TENSOR_FFN_LATENT_DOWN, "weight", i), {n_embd, moe_n_embd}, TENSOR_NOT_REQUIRED);
                 layer.ffn_latent_up   = create_tensor(tn(LLM_TENSOR_FFN_LATENT_UP,   "weight", i), {moe_n_embd, n_embd}, TENSOR_NOT_REQUIRED);
 
-                layer.ffn_down_exps   = create_tensor(tn(LLM_TENSOR_FFN_DOWN_EXPS, "weight", i), {n_ff_exp_i,   moe_n_embd, n_expert}, trunk_flags);
-                layer.ffn_up_exps     = create_tensor(tn(LLM_TENSOR_FFN_UP_EXPS,   "weight", i), {moe_n_embd, n_ff_exp_i, n_expert}, trunk_flags);
+                layer.ffn_down_exps   = create_tensor(tn(LLM_TENSOR_FFN_DOWN_EXPS, "weight", i), {n_ff_exp_i,   moe_n_embd, n_expert_i}, trunk_flags);
+                layer.ffn_up_exps     = create_tensor(tn(LLM_TENSOR_FFN_UP_EXPS,   "weight", i), {moe_n_embd, n_ff_exp_i, n_expert_i}, trunk_flags);
 
                 // Shared expert branch
                 layer.ffn_down_shexp  = create_tensor(tn(LLM_TENSOR_FFN_DOWN_SHEXP, "weight", i), {n_ff_shexp, n_embd}, trunk_flags);
@@ -289,6 +295,10 @@ ggml_tensor * llama_model_nemotron_h::graph::build_ffn_layer(ggml_tensor * cur, 
         ggml_tensor * router_logits = build_lora_mm(model.layers[il].ffn_gate_inp, cur);
         cb(router_logits, "ffn_moe_logits", il);
 
+        // pool esperti per-layer (Nemotron 3.5 Bolt): usa il dim reale del
+        // tensore caricato, non il valore globale (somma di tutti i layer)
+        const int64_t n_expert_il = model.layers[il].ffn_gate_inp
+            ? model.layers[il].ffn_gate_inp->ne[1] : n_expert;
         ggml_tensor * moe_out =
             build_moe_ffn(inp_latent,
                     model.layers[il].ffn_gate_inp,
@@ -296,7 +306,7 @@ ggml_tensor * llama_model_nemotron_h::graph::build_ffn_layer(ggml_tensor * cur, 
                     nullptr, // no gate
                     model.layers[il].ffn_down_exps,
                     model.layers[il].ffn_exp_probs_b,
-                    n_expert, (int64_t)hparams.n_expert_used(il),
+                    n_expert_il, (int64_t)hparams.n_expert_used(il),
                     LLM_FFN_RELU_SQR, hparams.expert_weights_norm,
                     hparams.expert_weights_scale,
                     LLAMA_EXPERT_GATING_FUNC_TYPE_SIGMOID,

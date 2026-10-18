@@ -158,7 +158,7 @@ llama_context::llama_context(
         if (params.moe_experts != 0 && params.moe_experts_add != 0) {
             throw std::runtime_error("moe expert expansion: moe_experts and moe_experts_add are mutually exclusive");
         }
-        if (hparams.n_expert == 0 || hparams.n_expert_used() == 0) {
+        if (hparams.n_expert == 0 || hparams.n_expert_used_max() == 0) {
             throw std::runtime_error("moe expert expansion: model is not MoE (expert_count/expert_count_used missing)");
         }
         if (hparams.n_expert_groups > 1) {
@@ -166,7 +166,7 @@ llama_context::llama_context(
         }
 
         const int32_t n_layer = (int32_t) hparams.n_layer();
-        const int32_t k       = (int32_t) hparams.n_expert_used();
+        const int32_t k       = (int32_t) hparams.n_expert_used_max();
 
         const int32_t n = params.moe_experts != 0 ?
             params.moe_experts : k + params.moe_experts_add;

@@ -2030,7 +2030,7 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
         !weight_before_ffn &&
         hparams.n_expert_groups <= 1 &&
         selected_experts_in == nullptr &&
-        n_expert == hparams.n_expert &&
+        n_expert >= (int64_t) hparams.n_expert_used(il) && n_expert <= (int64_t) hparams.n_expert &&
         (n_expert_used == (int64_t) hparams.n_expert_used() ||
          n_expert_used == (int64_t) hparams.n_expert_used(il)) &&
         (cparams.moe_experts != (int64_t) n_expert_used || cparams.moe_expert_threshold > 0.0f);
