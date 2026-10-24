@@ -122,8 +122,13 @@ static bool try_parse_ftype(const std::string & ftype_str_in, llama_ftype & ftyp
 static void usage(const char * executable) {
     printf("usage: %s [--help] [--allow-requantize] [--leave-output-tensor] [--pure] [--imatrix] [--include-weights]\n", executable);
     printf("       [--exclude-weights] [--output-tensor-type] [--token-embedding-type] [--tensor-type] [--tensor-type-file]\n");
-    printf("       [--prune-layers] [--keep-split] [--override-kv] [--dry-run] [--max-buffer-size]\n");
+    printf("       [--prune-layers] [--keep-split] [--override-kv] [--dry-run] [--max-buffer-size] [--split-experts]\n");
     printf("       model-f32.gguf [model-quant.gguf] type [nthreads]\n\n");
+    printf("  --split-experts file_name\n");
+    printf("                                      MoE per-expert mixed precision: file with one line per layer,\n");
+    printf("                                      256 comma-separated expert ids sorted by usage rank; each layer's\n");
+    printf("                                      routed expert tensors are split into 4 pools (16 Q8_0 / 48 Q6_K /\n");
+    printf("                                      128 Q4_K / 64 Q2_K) with local/mask lookup tables\n");
     printf("  --allow-requantize\n");
     printf("                                      allow requantizing tensors that have already been quantized\n");
     printf("                                      WARNING: this can severely reduce quality compared to quantizing\n");
@@ -465,6 +470,45 @@ int llama_quantize(int argc, char ** argv) {
         } else if (strcmp(argv[arg_idx], "--exclude-weights") == 0) {
             if (arg_idx < argc-1) {
                 excluded_weights.emplace_back(argv[++arg_idx]);
+            } else {
+                usage(argv[0]);
+            }
+        } else if (strcmp(argv[arg_idx], "--split-experts") == 0) {
+            if (arg_idx < argc-1) {
+                // file: una riga per layer, 256 id di esperti separati da virgole,
+                // in ordine di rank d'uso (dal piano di quantizzazione)
+                std::ifstream f(argv[++arg_idx]);
+                if (!f) {
+                    fprintf(stderr, "%s: cannot open --split-experts file\n", __func__);
+                    usage(argv[0]);
+                }
+                static std::vector<int32_t> order;
+                std::string line;
+                while (std::getline(f, line)) {
+                    if (line.empty()) continue;
+                    size_t pos = 0;
+                    int count = 0;
+                    while (pos < line.size() && count < 256) {
+                        const size_t comma = line.find(',', pos);
+                        const std::string tok = line.substr(pos, (comma == std::string::npos ? line.size() : comma) - pos);
+                        if (!tok.empty()) {
+                            order.push_back(atoi(tok.c_str()));
+                            count++;
+                        }
+                        if (comma == std::string::npos) break;
+                        pos = comma + 1;
+                    }
+                    if (count != 256) {
+                        fprintf(stderr, "%s: split-experts line with %d ids (expected 256): %s\n", __func__, count, line.c_str());
+                        usage(argv[0]);
+                    }
+                }
+                if (order.empty()) {
+                    fprintf(stderr, "%s: empty --split-experts file\n", __func__);
+                    usage(argv[0]);
+                }
+                params.expert_order = order.data();
+                params.n_expert_order = (int32_t) (order.size() / 256);
             } else {
                 usage(argv[0]);
             }

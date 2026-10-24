@@ -919,6 +919,27 @@ static void llama_model_quantize_impl(const std::string & fname_inp, const std::
         nthread = std::thread::hardware_concurrency();
     }
 
+    // MoE per-expert split pools: sizes/types/handler (see quantize_experts_split)
+    const int32_t  pool_sizes[4] = {16, 48, 128, 64};
+    const ggml_type pool_types[4] = {GGML_TYPE_Q8_0, GGML_TYPE_Q6_K, GGML_TYPE_Q4_K, GGML_TYPE_Q2_K};
+    const char *   pool_suffix[4] = {"hi", "mid", "lo", "tail"};
+    const bool split_experts = params->expert_order != nullptr && params->n_expert_order > 0;
+
+    auto is_split_exps_tensor = [&](const std::string & name, int & layer_id) {
+        if (!split_experts) return false;
+        for (const char * base : {"ffn_gate_up_exps", "ffn_down_exps", "ffn_gate_exps", "ffn_up_exps"}) {
+            const std::string suffix = std::string(".") + base + ".weight";
+            if (name.size() > suffix.size() && name.compare(name.size() - suffix.size(), suffix.size(), suffix) == 0) {
+                const size_t dot = name.find('.');
+                if (dot != std::string::npos && name.compare(0, 3, "blk") == 0) {
+                    layer_id = atoi(name.c_str() + 4);
+                    return layer_id >= 0 && layer_id < params->n_expert_order;
+                }
+            }
+        }
+        return false;
+    };
+
     ggml_type default_type = llama_ftype_get_default_type(ftype);
     if (default_type == GGML_TYPE_COUNT) {
         throw std::runtime_error(format("invalid output file type %d\n", ftype));
@@ -1037,6 +1058,12 @@ static void llama_model_quantize_impl(const std::string & fname_inp, const std::
     }
 
     // keep_split requires that the weights are sorted by split index
+    // contesto per i tensori pool registrati nei metadati (nomi/shape/type)
+    ggml_context * pool_ggml_ctx = nullptr;
+    if (split_experts) {
+        pool_ggml_ctx = ggml_init({/*mem_size*/ ggml_tensor_overhead()*64*1024, /*buffer*/ nullptr, /*no_alloc*/ true});
+    }
+
     if (params->keep_split) {
         std::sort(tensors.begin(), tensors.end(), [](const llama_model_loader::llama_tensor_weight * a, const llama_model_loader::llama_tensor_weight * b) {
             if (a->idx == b->idx) {
@@ -1082,6 +1109,40 @@ static void llama_model_quantize_impl(const std::string & fname_inp, const std::
         if (!ctx_outs[i_split]) {
             ctx_outs[i_split].reset(gguf_init_empty());
         }
+
+        // MoE split: al posto del tensore intero registra 4 tensori pool + 8 tabelle
+        {
+            int split_layer = -1;
+            if (is_split_exps_tensor(metadata[i].name, split_layer)) {
+                const std::string base = metadata[i].name;
+                const size_t dot_w = base.size() - 7;  // ".weight"
+                for (int p = 0; p < 4; ++p) {
+                    ggml_tensor * tp = ggml_new_tensor_3d(pool_ggml_ctx, pool_types[p],
+                                                          tensor->ne[0], tensor->ne[1], pool_sizes[p]);
+                    const std::string nm = base.substr(0, dot_w) + "_" + pool_suffix[p] + ".weight";
+                    ggml_set_name(tp, nm.c_str());
+                    gguf_add_tensor(ctx_outs[i_split].get(), tp);
+                }
+                // le tabelle local/mask (una coppia per pool) vengono registrate
+                // una sola volta per layer, dal tensore down (sempre presente)
+                if (base.find("ffn_down_exps") != std::string::npos) {
+                    for (int p = 0; p < 4; ++p) {
+                        for (int kind = 0; kind < 2; ++kind) {
+                            ggml_tensor * tt = ggml_new_tensor_1d(pool_ggml_ctx, GGML_TYPE_F32, tensor->ne[2]);
+                            const std::string tm_name = base.substr(0, base.rfind("ffn_")) +
+                                std::string("ffn_exps_") + (kind == 0 ? "local_" : "mask_") + std::to_string(p) + ".weight";
+                            ggml_set_name(tt, tm_name.c_str());
+                            gguf_add_tensor(ctx_outs[i_split].get(), tt);
+                        }
+                    }
+                }
+                if (params->imatrix) {
+                    metadata[i].remapped_imatrix_name = remap_imatrix(metadata[i].name, mapped);
+                }
+                continue;  // gestione custom nel main loop
+            }
+        }
+
         gguf_add_tensor(ctx_outs[i_split].get(), tensor);
 
         metadata[i].allows_quantization = tensor_allows_quantization(params, model->arch, tensor);
@@ -1189,6 +1250,95 @@ static void llama_model_quantize_impl(const std::string & fname_inp, const std::
             }
             return ml.load_data_range(weight, offs, size, read_data.data());
         };
+
+        // MoE per-expert split pools: quantizza ogni esperto con il tipo della
+        // sua fascia e scrive i 4 tensori pool + le 8 tabelle local/mask
+        {
+            int split_layer = -1;
+            if (is_split_exps_tensor(tm.name, split_layer)) {
+                const int32_t * order = params->expert_order + (size_t) split_layer * 256;
+                const std::string base = tm.name;
+                const size_t dot_w = base.size() - 7;
+                const std::string prefix = base.substr(0, base.rfind("ffn_"));
+                const int64_t ne0 = tensor->ne[0], ne1 = tensor->ne[1];
+                const size_t row_size_src = ggml_row_size(tensor->type, ne0);
+
+                const float * imatrix_all = nullptr;
+                if (imatrix_data) {
+                    auto it = imatrix_data->find(tm.remapped_imatrix_name);
+                    if (it != imatrix_data->end() && it->second.size() == (size_t) ne0 * tensor->ne[2]) {
+                        imatrix_all = it->second.data();
+                    } else {
+                        LLAMA_LOG_WARN("%s: imatrix mancante o di shape errata per %s: i tier low-bit saranno senza imatrix\n",
+                                       __func__, tm.name.c_str());
+                    }
+                }
+
+                const int64_t chunk = (ne0 >= 32*512 ? ne0 : ne0 * ((32*512 + ne0 - 1)/ne0));
+                const int64_t nthread_use = std::max(1, std::min(nthread, (int) ne1));
+                const size_t bytes_per_row = row_size_src + (tensor->type == GGML_TYPE_F32 ? 0 : ne0*sizeof(float));
+
+                size_t total_org = ggml_nbytes(tensor);
+                size_t total_new = 0;
+                int off = 0;
+
+                if (!params->dry_run) {
+                    for (int p = 0; p < 4; ++p) {
+                        const size_t row_size_dst = ggml_row_size(pool_types[p], ne0);
+                        // tensori pool: ne0*ne1 righe quantizzate
+                        for (int pos = 0; pos < pool_sizes[p]; ++pos) {
+                            const int e = order[off + pos];
+                            const void * src = load_range((size_t) e * ne1 * row_size_src, ne1 * row_size_src);
+                            if (f32_conv_buf.size() < (size_t) ne1 * ne0) {
+                                f32_conv_buf.resize(ne1 * ne0);
+                            }
+                            llama_tensor_dequantize_impl(tensor->type, src, (float *) f32_conv_buf.data(), workers, ne1 * ne0, nthread);
+                            const float * im = imatrix_all ? imatrix_all + (size_t) e * ne0 : nullptr;
+                            const size_t out_sz = ne1 * row_size_dst;
+                            if (work.size() < out_sz) {
+                                work.resize(out_sz);
+                            }
+                            const int64_t nchunk = (ne1 * ne0 + chunk - 1)/chunk;
+                            const size_t sz = llama_tensor_quantize_impl(pool_types[p],
+                                    (const float *) f32_conv_buf.data(), work.data(), chunk, 0, ne1, ne1, ne0, im, workers,
+                                    std::max(1, std::min(nthread, (int) nchunk)));
+                            fout.write((const char *) work.data(), sz);
+                            total_new += sz;
+                        }
+                        zeros(fout, GGML_PAD(total_new, align) - total_new);
+                        off += pool_sizes[p];
+                    }
+                    // tabelle local/mask: scritte dopo i pool del tensore down
+                    // (stesso ordine della registrazione nei metadati)
+                    if (base.find("ffn_down_exps") != std::string::npos) {
+                        for (int p = 0; p < 4; ++p) {
+                            float local[256] = {0}, mask[256] = {0};
+                            for (int pos = 0; pos < pool_sizes[p]; ++pos) {
+                                const int e = order[off + pos];
+                                local[e] = (float) pos;
+                                mask[e] = 1.0f;
+                            }
+                            fout.write((const char *) local, sizeof(local));
+                            fout.write((const char *) mask, sizeof(mask));
+                            total_new += 2*sizeof(local);
+                        }
+                        zeros(fout, GGML_PAD(total_new, align) - total_new);
+                    }
+                    LLAMA_LOG_INFO("size = %8.2f MiB -> %8.2f MiB (4 pool per-esperto)\n",
+                                   total_org/1024.0/1024.0, total_new/1024.0/1024.0);
+                } else {
+                    for (int p = 0; p < 4; ++p) {
+                        total_new += (size_t) pool_sizes[p] * ne1 * ggml_row_size(pool_types[p], ne0);
+                    }
+                    total_new += 8 * 256 * sizeof(float);
+                    LLAMA_LOG_INFO("size = %8.2f MiB -> %8.2f MiB (4 pool per-esperto)\n",
+                                   total_org/1024.0/1024.0, total_new/1024.0/1024.0);
+                }
+                total_size_org += total_org;
+                total_size_new += total_new;
+                continue;
+            }
+        }
 
         LLAMA_LOG_INFO("[%4d/%4d] %-36s - [%s], type = %6s, ",
                ++idx, ml.n_tensors,
@@ -1343,6 +1493,10 @@ static void llama_model_quantize_impl(const std::string & fname_inp, const std::
         close_ofstream();
     }
 
+    if (pool_ggml_ctx) {
+        ggml_free(pool_ggml_ctx);
+    }
+
     LLAMA_LOG_INFO("%s: model size  = %8.2f MiB (%.2f BPW)\n", __func__, total_size_org/1024.0/1024.0, total_size_org*8.0/ml.n_elements);
     LLAMA_LOG_INFO("%s: quant size  = %8.2f MiB (%.2f BPW)\n", __func__, total_size_new/1024.0/1024.0, total_size_new*8.0/ml.n_elements);
 
@@ -1378,7 +1532,9 @@ llama_model_quantize_params llama_model_quantize_default_params() {
         /*.kv_overrides                =*/ nullptr,
         /*.tensor_type                 =*/ nullptr,
         /*.prune_layers                =*/ nullptr,
-        /*.max_buf_size                =*/ LLAMA_QUANT_MAX_BUF_SIZE
+        /*.max_buf_size                =*/ LLAMA_QUANT_MAX_BUF_SIZE,
+        /*.expert_order                =*/ nullptr,
+        /*.n_expert_order              =*/ 0
     };
 
     return result;

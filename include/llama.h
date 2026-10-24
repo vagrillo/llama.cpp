@@ -468,6 +468,13 @@ extern "C" {
         const struct llama_model_tensor_override * tt_overrides;    // pointer to tensor overrides
         const int32_t * prune_layers;                               // pointer to layer indices to prune
         size_t max_buf_size;                                        // max bytes of tensor rows kept in memory at once, 0 = default (8 GiB)
+        // MoE per-expert mixed precision: expert_order[layer*256 + i] = expert id
+        // ranked i-th by usage for that layer. When set, the routed expert
+        // tensors (ffn_gate_up_exps / ffn_down_exps) are split into 4 pools
+        // (16 Q8_0 / 48 Q6_K / 128 Q4_K / 64 Q2_K experts) with per-pool local
+        // index and mask lookup tables (ffn_exps_local_p / ffn_exps_mask_p).
+        const int32_t * expert_order;                               // pointer to [n_layer * 256] ranked expert ids
+        int32_t         n_expert_order;                             // number of layers in expert_order
     } llama_model_quantize_params;
 
     typedef struct llama_logit_bias {

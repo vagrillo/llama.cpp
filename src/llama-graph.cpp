@@ -2,10 +2,12 @@
 
 // moe-predict: attiva l'esposizione dei tensori di routing quando e' richiesta
 // la registrazione per-token degli esperti (LLAMA_MOE_EXPERT_LOG=file.jsonl)
+// o il conteggio cumulativo per-esperto (LLAMA_MOE_EXPERT_USAGE_FILE=file.json)
 static bool ggml_moe_expert_log_enabled() {
     static const bool enabled = getenv("LLAMA_MOE_EXPERT_LOG") != nullptr ||
                                 getenv("LLAMA_MOE_EXPERT_PREFETCH") != nullptr ||
-                                getenv("LLAMA_MOE_CHUNK_PREDICT") != nullptr;
+                                getenv("LLAMA_MOE_CHUNK_PREDICT") != nullptr ||
+                                getenv("LLAMA_MOE_EXPERT_USAGE_FILE") != nullptr;
     return enabled;
 }
 #include "llama-moe-expansion.h"
@@ -1948,7 +1950,14 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
          ggml_tensor * up_exps_s,
          ggml_tensor * gate_exps_s,
          ggml_tensor * down_exps_s,
-         ggml_tensor * selected_experts_in) const {
+         ggml_tensor * selected_experts_in,
+         ggml_tensor * const * gate_up_exps_pools,
+         ggml_tensor * const * gate_exps_pools,
+         ggml_tensor * const * up_exps_pools,
+         ggml_tensor * const * down_exps_pools,
+         ggml_tensor * const * local_tables,
+         ggml_tensor * const * mask_tables,
+                  int   n_pools) const {
     return build_moe_ffn(
         cur,
         gate_inp,  /* gate_inp_b  */ nullptr,
@@ -1969,7 +1978,14 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
         up_exps_s,
         gate_exps_s,
         down_exps_s,
-        selected_experts_in
+        selected_experts_in,
+        gate_up_exps_pools,
+        gate_exps_pools,
+        up_exps_pools,
+        down_exps_pools,
+        local_tables,
+        mask_tables,
+        n_pools
     );
 }
 
@@ -1997,7 +2013,14 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
          ggml_tensor * up_exps_s,
          ggml_tensor * gate_exps_s,
          ggml_tensor * down_exps_s,
-         ggml_tensor * selected_experts_in) const {
+         ggml_tensor * selected_experts_in,
+         ggml_tensor * const * gate_up_exps_pools,
+         ggml_tensor * const * gate_exps_pools,
+         ggml_tensor * const * up_exps_pools,
+         ggml_tensor * const * down_exps_pools,
+         ggml_tensor * const * local_tables,
+         ggml_tensor * const * mask_tables,
+                  int   n_pools) const {
     const int64_t n_embd   = cur->ne[0];
     const int64_t n_tokens = cur->ne[1];
     const bool weight_before_ffn = arch == LLM_ARCH_LLAMA4; // for llama4, we apply the sigmoid-ed weights before the FFN
@@ -2260,6 +2283,72 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
     ggml_build_forward_expand(gf, weights);
 
     cur = ggml_reshape_3d(ctx0, cur, n_embd, 1, n_tokens);
+
+    // ===== per-expert split pools (mixed precision per rank d'uso) =====
+    // per ogni pool: gli id del router vengono rimappati all'indice locale
+    // (get_rows sulla tabella local_p, cast a I32) e i pesi mascherati
+    // (get_rows su mask_p); gli esperti fuori pool valutano l'esperto locale 0
+    // con peso 0 (contributo nullo). Il risultato e' la somma pesata dei
+    // parziali di tutti i pool, identica al compute non pooled.
+    if (n_pools > 0 && (gate_up_exps_pools || gate_exps_pools)) {
+        GGML_ASSERT(type_op == LLM_FFN_SILU && "i pool supportano solo silu/swiglu");
+        fprintf(stderr, "POOLDBG0 n_pools=%d n_expert=%lld n_used=%lld n_tokens=%lld cur=[%lld,%lld,%lld] loc0=[%lld,%lld,%lld] w=[%lld,%lld,%lld,%lld] sel=[%lld,%lld,%lld,%lld]\n",
+                n_pools, (long long)n_expert, (long long)n_used, (long long)n_tokens,
+                (long long)cur->ne[0], (long long)cur->ne[1], (long long)cur->ne[2],
+                (long long)local_tables[0]->ne[0], (long long)local_tables[0]->ne[1], (long long)local_tables[0]->ne[2],
+                (long long)weights->ne[0], (long long)weights->ne[1], (long long)weights->ne[2], (long long)weights->ne[3],
+                (long long)selected_experts->ne[0], (long long)selected_experts->ne[1], (long long)selected_experts->ne[2], (long long)selected_experts->ne[3]);
+        if (w_scale != 0.0f && w_scale != 1.0f) {
+            weights = ggml_scale(ctx0, weights, w_scale);
+        }
+
+        ggml_tensor * moe_out_p = nullptr;
+        for (int p = 0; p < n_pools; ++p) {
+            // stesso schema di probs: tabella [1, n_expert, n_tokens] (ripetuta
+            // per token), gather lungo dim0, out [1, n_used, n_tokens]
+            ggml_tensor * loc_t = ggml_repeat(ctx0,
+                    ggml_reshape_3d(ctx0, local_tables[p], 1, n_expert, 1),
+                    ggml_new_tensor_3d(ctx0, GGML_TYPE_F32, 1, n_expert, n_tokens));
+            ggml_tensor * msk_t = ggml_repeat(ctx0,
+                    ggml_reshape_3d(ctx0, mask_tables[p], 1, n_expert, 1),
+                    ggml_new_tensor_3d(ctx0, GGML_TYPE_F32, 1, n_expert, n_tokens));
+
+            fprintf(stderr, "POOLDBG p=%d sel=[%lld,%lld,%lld,%lld] loc=[%lld,%lld,%lld] ne=%lld ntok=%lld\n", p,
+                    (long long)selected_experts->ne[0], (long long)selected_experts->ne[1], (long long)selected_experts->ne[2], (long long)selected_experts->ne[3],
+                    (long long)local_tables[p]->ne[0], (long long)local_tables[p]->ne[1], (long long)local_tables[p]->ne[2],
+                    (long long)n_expert, (long long)n_tokens);
+            ggml_tensor * ids_f = ggml_get_rows(ctx0, loc_t, selected_experts);   // [1, n_used, n_tokens, 1]
+            ggml_tensor * ids_p = ggml_cast(ctx0, ggml_reshape_4d(ctx0, ids_f, n_used, n_tokens, 1, 1), GGML_TYPE_I32);
+            ggml_tensor * w_p = ggml_get_rows(ctx0, msk_t, selected_experts);     // [1, n_used, n_tokens, 1]
+            w_p = ggml_mul(ctx0, weights, w_p);
+
+            ggml_tensor * gate;
+            ggml_tensor * upv;
+            if (gate_exps_pools) {
+                // gate/up separati (es. sorgente Q8_0 ufficiale)
+                GGML_ASSERT(up_exps_pools && "pool gate richiede pool up");
+                gate = build_lora_mm_id(gate_exps_pools[p], cur, ids_p, nullptr);  // [n_ff_p, n_used, n_tokens]
+                upv  = build_lora_mm_id(up_exps_pools[p],   cur, ids_p, nullptr);
+            } else {
+                // gate/up fusi (es. quant UD): un solo mul_mat_id, poi viste
+                ggml_tensor * gate_up = build_lora_mm_id(gate_up_exps_pools[p], cur, ids_p, nullptr);
+                const int64_t n_ff_p = gate_up->ne[0] / 2;
+                gate = ggml_view_3d(ctx0, gate_up, n_ff_p, n_used, n_tokens, gate_up->nb[1], gate_up->nb[2], 0);
+                upv  = ggml_view_3d(ctx0, gate_up, n_ff_p, n_used, n_tokens, gate_up->nb[1], gate_up->nb[2], n_ff_p * gate_up->nb[0]);
+            }
+            ggml_tensor * act  = ggml_swiglu_split(ctx0, gate, upv);       // [n_ff_p, n_used, n_tokens]
+            ggml_tensor * down = build_lora_mm_id(down_exps_pools[p], act, ids_p, nullptr); // [n_embd, n_used, n_tokens]
+            down = ggml_mul(ctx0, down, w_p);
+
+            ggml_tensor * acc = ggml_view_2d(ctx0, down, n_embd, n_tokens, down->nb[2], 0);
+            for (int64_t r = 1; r < n_used; ++r) {
+                acc = ggml_add(ctx0, acc, ggml_view_2d(ctx0, down, n_embd, n_tokens, down->nb[2], r*down->nb[1]));
+            }
+            moe_out_p = (p == 0) ? acc : ggml_add(ctx0, moe_out_p, acc);
+        }
+        cb(moe_out_p, "ffn_moe_out", il);
+        return moe_out_p;
+    }
 
     if (weight_before_ffn) {
         // repeat cur to [n_embd, n_used, n_tokens]

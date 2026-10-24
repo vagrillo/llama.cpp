@@ -337,6 +337,15 @@ struct llama_layer {
     struct ggml_tensor * ffn_up_exps_b     = nullptr;
     struct ggml_tensor * ffn_gate_up_exps_b = nullptr;
 
+    // ff MoE per-expert split pools (4 fasce di precisione per rank d'uso;
+    // vedi llama-quant --split-experts). local/mask: tabelle [n_expert] F32
+    struct ggml_tensor * ffn_gate_up_exps_p[4] = { nullptr, nullptr, nullptr, nullptr };
+    struct ggml_tensor * ffn_gate_exps_p[4]    = { nullptr, nullptr, nullptr, nullptr };
+    struct ggml_tensor * ffn_up_exps_p[4]      = { nullptr, nullptr, nullptr, nullptr };
+    struct ggml_tensor * ffn_down_exps_p[4]    = { nullptr, nullptr, nullptr, nullptr };
+    struct ggml_tensor * ffn_exps_local[4]     = { nullptr, nullptr, nullptr, nullptr };
+    struct ggml_tensor * ffn_exps_mask[4]      = { nullptr, nullptr, nullptr, nullptr };
+
     // ff MoE per-expert scales (NVFP4 per-tensor scale2)
     struct ggml_tensor * ffn_gate_exps_s   = nullptr;
     struct ggml_tensor * ffn_down_exps_s   = nullptr;

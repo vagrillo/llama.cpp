@@ -1141,7 +1141,17 @@ struct llm_graph_context {
              ggml_tensor * up_exps_s = nullptr,
              ggml_tensor * gate_exps_s = nullptr,
              ggml_tensor * down_exps_s = nullptr,
-             ggml_tensor * selected_experts_in = nullptr) const;
+             ggml_tensor * selected_experts_in = nullptr,
+    // per-expert split pools (mixed precision per rank d'uso): n_pools > 0
+    // attiva il compute per-pool; local/mask sono tabelle [n_expert] F32;
+    // gate_up_exps_pools per il gate/up fuso, oppure gate/up separati
+             ggml_tensor * const * gate_up_exps_pools = nullptr,
+             ggml_tensor * const * gate_exps_pools    = nullptr,
+             ggml_tensor * const * up_exps_pools      = nullptr,
+             ggml_tensor * const * down_exps_pools    = nullptr,
+             ggml_tensor * const * local_tables       = nullptr,
+             ggml_tensor * const * mask_tables        = nullptr,
+                      int   n_pools                = 0) const;
 
     ggml_tensor * build_moe_ffn(
              ggml_tensor * cur,
@@ -1167,7 +1177,14 @@ struct llm_graph_context {
              ggml_tensor * up_exps_s = nullptr,
              ggml_tensor * gate_exps_s = nullptr,
              ggml_tensor * down_exps_s = nullptr,
-             ggml_tensor * selected_experts_in = nullptr) const;
+             ggml_tensor * selected_experts_in = nullptr,
+             ggml_tensor * const * gate_up_exps_pools = nullptr,
+             ggml_tensor * const * gate_exps_pools    = nullptr,
+             ggml_tensor * const * up_exps_pools      = nullptr,
+             ggml_tensor * const * down_exps_pools    = nullptr,
+             ggml_tensor * const * local_tables       = nullptr,
+             ggml_tensor * const * mask_tables        = nullptr,
+                      int   n_pools                = 0) const;
 
     //
     // inputs

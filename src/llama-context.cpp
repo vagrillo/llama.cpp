@@ -23,6 +23,7 @@ extern "C" void ggml_cuda_moe_prefetch(const void * ptr, size_t size, int device
 #include <map>
 #include <cstring>
 #include <cstdlib>
+#include <ctime>
 #include <cstring>
 #include <algorithm>
 #include <limits>
@@ -1561,6 +1562,67 @@ static bool moe_chunk_cb(ggml_tensor * t, bool ask, void * /*user_data*/) {
     return true;
 }
 
+// ===== conteggio cumulativo per-esperto (LLAMA_MOE_EXPERT_USAGE_FILE) =====
+// Il readback a fine grafo perde ubatch di decode: con CUDA graphs e topologie
+// che cambiano (batch concorrenti), alcuni tensori di routing leggono buffer
+// non freschi e la plausibilita' scarta l'ubatch. Qui il conteggio avviene
+// nella eval callback dello sched: il backend sincronizza e offre i dati del
+// tensore osservato (pattern moe_chunk_cb). Osserviamo SOLO i weights: ids e'
+// un input di get_rows, quindi al sync dei weights anche ids e' pronto.
+// NB: osservare per-tensor spezza il grafo in sub-grafi (ggml-backend.cpp):
+// costa sincronizzazioni in decode, accettabile per le run di raccolta dati.
+static struct {
+    bool enabled = false;
+    const char * path = nullptr;
+    int64_t every = 256;
+    bool active = false;   // false nei grafi MTP/draft: non miscolano il routing
+    std::unordered_map<const void *, int> watch;        // tensore weights -> layer
+    const std::map<int, llm_graph_result::llm_moe_log> * cur_logs = nullptr;
+    std::map<int, std::vector<int64_t>> pending_counts; // selezioni dell'ubatch corrente
+    std::map<int, int> pending_tokens;                  // token per layer nell'ubatch
+} g_moe_usage;
+
+static bool moe_usage_cb(ggml_tensor * t, bool ask, void * /*user_data*/) {
+    if (!t) return false;
+    auto it = g_moe_usage.watch.find(t);
+    if (it == g_moe_usage.watch.end()) return false;
+    if (ask) return true;
+    // ask == false: il backend e' sincronizzato. Osserviamo solo il weights:
+    // ids e' un input di get_rows, calcolato prima sullo stesso stream, quindi
+    // al sync dei weights anche i suoi dati sono pronti e li leggiamo qui.
+    const int il = it->second;
+    const auto logs_it = g_moe_usage.cur_logs->find(il);
+    if (logs_it == g_moe_usage.cur_logs->end()) return true;
+    const auto & st = logs_it->second;
+    if (st.n_tokens <= 0 || st.n_used <= 0 || st.n_expert <= 0) return true;
+
+    std::vector<int32_t> ids(st.n_used * st.n_tokens);
+    ggml_backend_tensor_get(st.ids, ids.data(), 0, ids.size() * sizeof(int32_t));
+    std::vector<float> wgt(st.n_used * st.n_tokens);
+    ggml_backend_tensor_get(st.weights, wgt.data(), 0, wgt.size() * sizeof(float));
+    bool plausible = st.n_expert > 0;
+    for (size_t k = 0; plausible && k < ids.size(); ++k) {
+        if (ids[k] < 0 || ids[k] >= st.n_expert) plausible = false;
+    }
+    for (size_t k = 0; plausible && k < wgt.size(); ++k) {
+        if (!(wgt[k] >= 0.0f)) plausible = false;  // scarta NaN/negativi
+    }
+    if (!plausible) return true;
+
+    auto & acc = g_moe_usage.pending_counts[il];
+    if (acc.size() < (size_t) st.n_expert) acc.resize(st.n_expert, 0);
+    for (int tk = 0; tk < st.n_tokens; ++tk) {
+        for (int r = 0; r < st.n_used; ++r) {
+            if (wgt[r * st.n_tokens + tk] > 1e-6f) {
+                const int32_t e = ids[r * st.n_tokens + tk];
+                if (e >= 0 && (size_t) e < acc.size()) acc[e]++;
+            }
+        }
+    }
+    g_moe_usage.pending_tokens[il] = st.n_tokens;
+    return true;
+}
+
 // ===== moe-bracket (A1/A2): correzione bracket dell'errore di quantizzazione =====
 // LLAMA_MOE_BRACKET=1: al primo ubatch estrae da ogni tensore esperto lo step di
 // quantizzazione per blocco-32 (dai byte di scala del formato Q4_K/Q8_0/Q4_0) e
@@ -1825,6 +1887,46 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
         }
     }
 
+    // conteggio per-esperto: registra la callback sincrona (vedi g_moe_usage).
+    // I grafi MTP/draft (gtype DECODER_MTP) usano routing nativo: li escludiamo
+    // per non mescolare selezioni expand-20 e native nei conteggi.
+    {
+        static const bool usage_enabled = []() {
+            g_moe_usage.path = getenv("LLAMA_MOE_EXPERT_USAGE_FILE");
+            if (!g_moe_usage.path) return false;
+            g_moe_usage.enabled = true;
+            if (const char * e = getenv("LLAMA_MOE_EXPERT_USAGE_EVERY")) {
+                g_moe_usage.every = std::max<int64_t>(1, atoll(e));
+            }
+            LLAMA_LOG_INFO("%s: moe expert usage tracking attivo (path %s, every %d token)\n",
+                           __func__, g_moe_usage.path, (int) g_moe_usage.every);
+            return true;
+        }();
+        if (usage_enabled) {
+            g_moe_usage.active = gtype != LLM_GRAPH_TYPE_DECODER_MTP;
+            if (g_moe_usage.active) {
+                g_moe_usage.cur_logs = &res->moe_expert_logs;
+                g_moe_usage.watch.clear();
+                g_moe_usage.pending_counts.clear();
+                g_moe_usage.pending_tokens.clear();
+                for (const auto & [il, st] : res->moe_expert_logs) {
+                    g_moe_usage.watch[st.weights] = il;
+                }
+                // NB: se anche LLAMA_MOE_CHUNK_PREDICT e' attivo, questa
+                // registrazione lo sostituisce (una sola eval callback per sched)
+                ggml_backend_sched_set_eval_callback(sched.get(), moe_usage_cb, nullptr);
+                static int dbg_n = 0;
+                if (dbg_n++ < 3) {
+                    LLAMA_LOG_INFO("%s: moe usage watch=%zu logs=%zu reused=%d\n",
+                                   __func__, g_moe_usage.watch.size(), res->moe_expert_logs.size(),
+                                   (int) (n_reused > 0));
+                }
+            } else {
+                ggml_backend_sched_set_eval_callback(sched.get(), nullptr, nullptr);
+            }
+        }
+    }
+
     const auto status = graph_compute(res->get_gf(), ubatch.n_tokens > 1);
     if (status != GGML_STATUS_SUCCESS) {
         LLAMA_LOG_ERROR("%s: failed to compute graph, compute status: %d\n", __func__, status);
@@ -1868,7 +1970,20 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
         static long moe_decode_tokens = 0;
         const bool do_log = moe_log_file && (moe_log_counter++ % moe_log_every) == 0;
 
-        if (do_log || moe_prefetch || g_moe_chunk.enabled) {
+        // conteggio cumulativo per-esperto: LLAMA_MOE_EXPERT_USAGE_FILE=json di
+        // destinazione, riscritto in modo atomico ogni LLAMA_MOE_EXPERT_USAGE_EVERY
+        // token (default 256). I contatori sopravvivono tra le richieste.
+        static const char * moe_usage_path = getenv("LLAMA_MOE_EXPERT_USAGE_FILE");
+        static const int64_t moe_usage_every = []() {
+            const char * e = getenv("LLAMA_MOE_EXPERT_USAGE_EVERY");
+            return e ? std::max<int64_t>(1, atoll(e)) : 256;
+        }();
+        static std::map<int, std::vector<int64_t>> moe_usage_acc;  // layer -> conteggio per esperto
+        static std::map<int, int64_t> moe_usage_tok;               // layer -> token contati
+        static int64_t moe_usage_tokens = 0;    // token accumulati dall'avvio
+        static int64_t moe_usage_dumped = 0;    // token al momento dell'ultimo dump
+
+        if (do_log || moe_prefetch || g_moe_chunk.enabled || moe_usage_path) {
             const char Q = '"';
             std::string line;
             if (do_log) {
@@ -1979,6 +2094,57 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
                         }
                     }
                     prev_L = il;
+                }
+            }
+
+            // merge dei conteggi osservati dalla callback sincrona e dump
+            // periodico: JSON riscritto in modo atomico (tmp + rename) cosi' un
+            // lettore esterno vede sempre una versione consistente
+            bool usage_any_layer = false;
+            for (const auto & [pl, cnt] : g_moe_usage.pending_counts) {
+                auto & acc = moe_usage_acc[pl];
+                if (acc.size() < cnt.size()) acc.resize(cnt.size(), 0);
+                for (size_t e = 0; e < cnt.size(); ++e) acc[e] += cnt[e];
+                moe_usage_tok[pl] += g_moe_usage.pending_tokens[pl];
+                usage_any_layer = true;
+            }
+            g_moe_usage.pending_counts.clear();
+            g_moe_usage.pending_tokens.clear();
+            if (moe_usage_path && usage_any_layer) {
+                moe_usage_tokens += ubatch.n_tokens;
+                if (moe_usage_tokens - moe_usage_dumped >= moe_usage_every) {
+                    moe_usage_dumped = moe_usage_tokens;
+                    const std::string tmp = std::string(moe_usage_path) + ".tmp";
+                    if (FILE * f = fopen(tmp.c_str(), "w")) {
+                        char ts[32];
+                        time_t now = time(nullptr);
+                        strftime(ts, sizeof(ts), "%FT%TZ", gmtime(&now));
+                        fprintf(f, "{\n  \"format\": \"moe-expert-usage-v2\",\n"
+                                   "  \"updated_at\": \"%s\",\n"
+                                   "  \"total_tokens\": %lld,\n"
+                                   "  \"layer_tokens\": {", ts, (long long) moe_usage_tokens);
+                        bool first_ut = true;
+                        for (const auto & [ul, ut] : moe_usage_tok) {
+                            fprintf(f, "%s\"%d\": %lld", first_ut ? "" : ", ", ul, (long long) ut);
+                            first_ut = false;
+                        }
+                        fprintf(f, "},\n  \"layers\": {\n");
+                        bool first_ul = true;
+                        for (const auto & [ul, uacc] : moe_usage_acc) {
+                            fprintf(f, "%s    \"%d\": {\"n_expert\": %zu, \"counts\": [",
+                                    first_ul ? "" : ",\n", ul, uacc.size());
+                            for (size_t e = 0; e < uacc.size(); ++e) {
+                                fprintf(f, "%s%lld", e ? ", " : "", (long long) uacc[e]);
+                            }
+                            fprintf(f, "]}");
+                            first_ul = false;
+                        }
+                        fprintf(f, "\n  }\n}\n");
+                        fclose(f);
+                        rename(tmp.c_str(), moe_usage_path);
+                        LLAMA_LOG_INFO("%s: moe usage dump tokens=%lld -> %s\n",
+                                       __func__, (long long) moe_usage_tokens, moe_usage_path);
+                    }
                 }
             }
 
