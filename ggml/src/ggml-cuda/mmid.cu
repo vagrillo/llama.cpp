@@ -46,74 +46,65 @@ static __global__ void mm_ids_helper(
     int nex_prev   = 0; // Number of columns for experts with a lower index.
     int it_compact = 0; // Running index for the compact slice of this expert.
 
+    // Compazione PER PAIR (row, token): con le pool per-esperto split (mixed
+    // precision) piu' righe dello stesso token possono mappare sullo stesso
+    // esperto locale; ogni coppia richiede il proprio slot compatto, altrimenti
+    // le voci di ids_src1 restano non inizializzate (OOB nello scatter MMQ).
+    // Per i modelli standard (tutte le coppie distinte) il risultato e' identico.
+    int * ctr = (int *) data_mm_ids_helper;   // contatore condiviso (>= 4 byte)
+    if (threadIdx.x == 0) {
+        *ctr = 0;
+    }
+    __syncthreads();
+
     if constexpr (n_expert_used_template == 0) {
-        // Generic implementation:
+        // Generic: coppie con iex strided tra i lane
         for (int it = 0; it < n_tokens; ++it) {
-            int iex_used = -1; // The index at which the expert is used, if any.
             for (int iex = threadIdx.x; iex < n_expert_used; iex += warp_size) {
-                const int expert_used = ids[it*si1 + iex];
-                nex_prev += expert_used < expert;
-                if (expert_used == expert) {
-                    iex_used = iex;
+                nex_prev += ids[it*si1 + iex] < expert;
+            }
+        }
+        nex_prev = warp_reduce_sum<warp_size>(nex_prev);
+        for (int it = 0; it < n_tokens; ++it) {
+            for (int iex = threadIdx.x; iex < n_expert_used; iex += warp_size) {
+                if (ids[it*si1 + iex] == expert) {
+                    const int idx = atomicAdd(ctr, 1);
+                    if (write_inverse) {
+                        ids_src1[it*n_expert_used + iex] = nex_prev + idx;
+                    } else {
+                        ids_src1[nex_prev + idx] = it*sis1 + iex % nchannels_y;
+                    }
+                    ids_dst[nex_prev + idx] = it*n_expert_used + iex;
                 }
-            }
-
-            if (iex_used != -1) {
-                store[it_compact] = mm_ids_helper_store(it, iex_used);
-            }
-
-            if (warp_reduce_any<warp_size>(iex_used != -1)) {
-                it_compact++;
             }
         }
     } else {
-        // Implementation optimized for specific numbers of experts used:
-        // a warp holds a whole number of token slots, so the slot count is padded to a power of 2
-        static_assert(neu_padded <= warp_size && warp_size % neu_padded == 0, "bad n_expert_used");
+        // Ottimizzato: i lane sono coppie (token, iex) padded a potenza di 2
         for (int it0 = 0; it0 < n_tokens; it0 += warp_size/neu_padded) {
             const int it = it0 + threadIdx.x / neu_padded;
-
-            const int iex = threadIdx.x % neu_padded; // The index at which the expert is used, if any.
+            const int iex = threadIdx.x % neu_padded;
             const int expert_used = (neu_padded == n_expert_used || iex < n_expert_used) && it < n_tokens ?
                 ids[it*si1 + iex] : INT_MAX;
-            const int iex_used = expert_used == expert ? iex : -1;
             nex_prev += expert_used < expert;
-
-            // Whether the threads at this token position have used the expert:
-            const int it_compact_add_self = warp_reduce_any<neu_padded>(iex_used != -1);
-
-            // Do a scan over threads at lower token positions in warp to get the correct index for writing data:
-            int it_compact_add_lower = 0;
-#pragma unroll
-            for (int offset = neu_padded; offset < warp_size; offset += neu_padded) {
-                const int tmp = __shfl_up_sync(0xFFFFFFFF, it_compact_add_self, offset, warp_size);
-                if (threadIdx.x >= static_cast<unsigned int>(offset)) {
-                    it_compact_add_lower += tmp;
+        }
+        nex_prev = warp_reduce_sum<warp_size>(nex_prev);
+        for (int it0 = 0; it0 < n_tokens; it0 += warp_size/neu_padded) {
+            const int it = it0 + threadIdx.x / neu_padded;
+            const int iex = threadIdx.x % neu_padded;
+            const bool valid = (neu_padded == n_expert_used || iex < n_expert_used) && it < n_tokens;
+            if (valid && ids[it*si1 + iex] == expert) {
+                const int idx = atomicAdd(ctr, 1);
+                if (write_inverse) {
+                    ids_src1[it*n_expert_used + iex] = nex_prev + idx;
+                } else {
+                    ids_src1[nex_prev + idx] = it*sis1 + iex % nchannels_y;
                 }
+                ids_dst[nex_prev + idx] = it*n_expert_used + iex;
             }
-
-            if (iex_used != -1) {
-                store[it_compact + it_compact_add_lower] = mm_ids_helper_store(it, iex_used);
-            }
-
-            // The thread with the highest index in the warp always has the sum over the whole warp, use it to increment all threads:
-            it_compact += __shfl_sync(0xFFFFFFFF, it_compact_add_lower + it_compact_add_self, warp_size - 1, warp_size);
         }
     }
-    nex_prev = warp_reduce_sum<warp_size>(nex_prev);
-
-    for (int itc = threadIdx.x; itc < it_compact; itc += warp_size) {
-        const mm_ids_helper_store store_it = store[itc];
-        const int it       = store_it.it();
-        const int iex_used = store_it.iex_used();
-        ids_dst[nex_prev + itc] = it*n_expert_used + iex_used;
-        // ids_src1 holds the forward map, or the inverse map (token slot -> compact row) for quant dedup
-        if (write_inverse) {
-            ids_src1[it*n_expert_used + iex_used] = nex_prev + itc;
-        } else {
-            ids_src1[nex_prev + itc] = it*sis1 + iex_used % nchannels_y;
-        }
-    }
+    __syncthreads();
+    it_compact = *ctr;
 
     if (threadIdx.x != 0) {
         return;
