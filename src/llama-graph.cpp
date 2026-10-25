@@ -2292,12 +2292,15 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
     // parziali di tutti i pool, identica al compute non pooled.
     if (n_pools > 0 && (gate_up_exps_pools || gate_exps_pools)) {
         GGML_ASSERT(type_op == LLM_FFN_SILU && "i pool supportano solo silu/swiglu");
-        fprintf(stderr, "POOLDBG0 n_pools=%d n_expert=%lld n_used=%lld n_tokens=%lld cur=[%lld,%lld,%lld] loc0=[%lld,%lld,%lld] w=[%lld,%lld,%lld,%lld] sel=[%lld,%lld,%lld,%lld]\n",
-                n_pools, (long long)n_expert, (long long)n_used, (long long)n_tokens,
-                (long long)cur->ne[0], (long long)cur->ne[1], (long long)cur->ne[2],
-                (long long)local_tables[0]->ne[0], (long long)local_tables[0]->ne[1], (long long)local_tables[0]->ne[2],
-                (long long)weights->ne[0], (long long)weights->ne[1], (long long)weights->ne[2], (long long)weights->ne[3],
-                (long long)selected_experts->ne[0], (long long)selected_experts->ne[1], (long long)selected_experts->ne[2], (long long)selected_experts->ne[3]);
+        static const bool pool_dbg = getenv("LLAMA_MOE_POOL_DEBUG") != nullptr;
+        if (pool_dbg) {
+            fprintf(stderr, "POOLDBG0 n_pools=%d n_expert=%lld n_used=%lld n_tokens=%lld cur=[%lld,%lld,%lld] loc0=[%lld,%lld,%lld] w=[%lld,%lld,%lld,%lld] sel=[%lld,%lld,%lld,%lld]\n",
+                    n_pools, (long long)n_expert, (long long)n_used, (long long)n_tokens,
+                    (long long)cur->ne[0], (long long)cur->ne[1], (long long)cur->ne[2],
+                    (long long)local_tables[0]->ne[0], (long long)local_tables[0]->ne[1], (long long)local_tables[0]->ne[2],
+                    (long long)weights->ne[0], (long long)weights->ne[1], (long long)weights->ne[2], (long long)weights->ne[3],
+                    (long long)selected_experts->ne[0], (long long)selected_experts->ne[1], (long long)selected_experts->ne[2], (long long)selected_experts->ne[3]);
+        }
         if (w_scale != 0.0f && w_scale != 1.0f) {
             weights = ggml_scale(ctx0, weights, w_scale);
         }
@@ -2313,10 +2316,12 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
                     ggml_reshape_3d(ctx0, mask_tables[p], 1, n_expert, 1),
                     ggml_new_tensor_3d(ctx0, GGML_TYPE_F32, 1, n_expert, n_tokens));
 
-            fprintf(stderr, "POOLDBG p=%d sel=[%lld,%lld,%lld,%lld] loc=[%lld,%lld,%lld] ne=%lld ntok=%lld\n", p,
-                    (long long)selected_experts->ne[0], (long long)selected_experts->ne[1], (long long)selected_experts->ne[2], (long long)selected_experts->ne[3],
-                    (long long)local_tables[p]->ne[0], (long long)local_tables[p]->ne[1], (long long)local_tables[p]->ne[2],
-                    (long long)n_expert, (long long)n_tokens);
+            if (pool_dbg) {
+                fprintf(stderr, "POOLDBG p=%d sel=[%lld,%lld,%lld,%lld] loc=[%lld,%lld,%lld] ne=%lld ntok=%lld\n", p,
+                        (long long)selected_experts->ne[0], (long long)selected_experts->ne[1], (long long)selected_experts->ne[2], (long long)selected_experts->ne[3],
+                        (long long)local_tables[p]->ne[0], (long long)local_tables[p]->ne[1], (long long)local_tables[p]->ne[2],
+                        (long long)n_expert, (long long)n_tokens);
+            }
             ggml_tensor * ids_f = ggml_get_rows(ctx0, loc_t, selected_experts);   // [1, n_used, n_tokens, 1]
             ggml_tensor * ids_p = ggml_cast(ctx0, ggml_reshape_4d(ctx0, ids_f, n_used, n_tokens, 1, 1), GGML_TYPE_I32);
             ggml_tensor * w_p = ggml_get_rows(ctx0, msk_t, selected_experts);     // [1, n_used, n_tokens, 1]

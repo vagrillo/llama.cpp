@@ -1983,6 +1983,12 @@ static void ggml_cuda_mul_mat_id(ggml_backend_cuda_context & ctx, ggml_tensor * 
     CUDA_CHECK(cudaMemcpyAsync(ids_host.data(), ids->data, ggml_nbytes(ids), cudaMemcpyDeviceToHost, stream));
     CUDA_CHECK(cudaStreamSynchronize(stream));
 
+    // Compact per (token, slot) pair: ids may assign the same expert to several
+    // slots of one token (per-expert mixed-precision pools remap out-of-pool
+    // selections to local expert 0; a router can also repeat an expert). Each
+    // match needs its own compact row, otherwise the count falls short of
+    // ne_get_rows and some dst slots are never written. Models with distinct
+    // experts per token produce exactly the same rows as before.
     for (int64_t i02 = 0; i02 < ne02; ++i02) { // expert matrices
         for (int64_t i12 = 0; i12 < ne12; ++i12) { // tokens
             for (int64_t iex = 0; iex < n_expert_used; ++iex) {
@@ -1992,7 +1998,6 @@ static void ggml_cuda_mul_mat_id(ggml_backend_cuda_context & ctx, ggml_tensor * 
                     ids_from_sorted_host[i12*n_expert_used + iex] = ids_to_sorted_host.size();
                     ids_to_sorted_host.push_back(i12*ne11 + iex % ne11);
                     tokens_per_expert[i02]++;
-                    break;
                 }
             }
         }
