@@ -86,6 +86,15 @@ same token map to the same local expert and the per-distinct-expert
 compaction left uninitialized `ids_src1` entries (illegal memory access in the
 MMQ scatter). Standard models (all pairs distinct) are unaffected.
 
+The same duplicate-id assumption broke the CUDA `mul_mat_id` **sorted
+fallback** (reached on tensor-core GPUs such as V100 for quantized weights
+when the token batch exceeds `MMQ_DP4A_MAX_BATCH_SIZE`): its host loop kept
+only the first slot per (token, expert) pair, under-counting the compact rows
+until `GGML_ASSERT(ids_to_sorted_host.size() == ne_get_rows)` aborted the
+server on the first large prefill. The fallback now compacts per pair as
+well, so every (token, slot) pair gets its own row on every path. The pool
+debug prints (`POOLDBG*`) are gated behind `LLAMA_MOE_POOL_DEBUG=1`.
+
 ## Reference workload and results
 
 Ranking collected on GPQA-Diamond (93 questions, greedy replay, reasoning

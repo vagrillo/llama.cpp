@@ -1309,15 +1309,20 @@ static void llama_model_quantize_impl(const std::string & fname_inp, const std::
                         off += pool_sizes[p];
                     }
                     // tabelle local/mask: scritte dopo i pool del tensore down
-                    // (stesso ordine della registrazione nei metadati)
+                    // (stesso ordine della registrazione nei metadati). offset
+                    // dedicato: qui "off" vale gia' 256 dopo i pool, riutilizzarlo
+                    // leggerebbe l'ordine del layer successivo (o oltre la fine
+                    // per l'ultimo layer) e remapperebbe gli esperti sbagliati.
                     if (base.find("ffn_down_exps") != std::string::npos) {
+                        int off_tbl = 0;
                         for (int p = 0; p < 4; ++p) {
                             float local[256] = {0}, mask[256] = {0};
                             for (int pos = 0; pos < pool_sizes[p]; ++pos) {
-                                const int e = order[off + pos];
+                                const int e = order[off_tbl + pos];
                                 local[e] = (float) pos;
                                 mask[e] = 1.0f;
                             }
+                            off_tbl += pool_sizes[p];
                             fout.write((const char *) local, sizeof(local));
                             fout.write((const char *) mask, sizeof(mask));
                             total_new += 2*sizeof(local);
