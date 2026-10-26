@@ -18,6 +18,10 @@ static bool ggml_moe_expert_log_enabled() {
 #include "llama-cparams.h"
 #include "llama-sampler.h"
 
+#include <algorithm>
+#include <cstdlib>
+#include <cstring>
+
 #include "llama-kv-cache.h"
 #include "llama-kv-cache-iswa.h"
 #include "llama-kv-cache-dsa.h"
@@ -2305,6 +2309,27 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
             weights = ggml_scale(ctx0, weights, w_scale);
         }
 
+        // Per-pool budgets (LLAMA_MOE_POOL_BUDGETS=K0,K1,K2,K3): per ogni pool
+        // gli slot vengono ordinati per peso mascherato (argsort desc per
+        // token) e valutate solo le prime K_p righe invece di n_used. Gli slot
+        // scartati avrebbero peso piccolo o nullo; con K_p >= n_used il
+        // comportamento e' denso (identico al non-budget). Gli id possono
+        // contenere duplicati di esperto locale (slot a peso 0 -> locale 0):
+        // tutti i percorsi mul_mat_id compattano per coppia (row, token).
+        int budgets[4] = { -1, -1, -1, -1 };
+        bool budgets_active = false;
+        if (const char * e = getenv("LLAMA_MOE_POOL_BUDGETS")) {
+            int nb = 0;
+            const char * q = e;
+            while (nb < 4 && *q) {
+                budgets[nb++] = atoi(q);
+                q = strchr(q, ',');
+                if (!q) break;
+                ++q;
+            }
+            budgets_active = true;
+        }
+
         ggml_tensor * moe_out_p = nullptr;
         for (int p = 0; p < n_pools; ++p) {
             // stesso schema di probs: tabella [1, n_expert, n_tokens] (ripetuta
@@ -2316,41 +2341,69 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
                     ggml_reshape_3d(ctx0, mask_tables[p], 1, n_expert, 1),
                     ggml_new_tensor_3d(ctx0, GGML_TYPE_F32, 1, n_expert, n_tokens));
 
+            const int64_t rows_p = budgets[p] >= 0 ? std::min<int64_t>(budgets[p], n_used) : n_used;
+            if (rows_p <= 0) {
+                continue;   // pool disabilitata dal budget
+            }
+
             if (pool_dbg) {
-                fprintf(stderr, "POOLDBG p=%d sel=[%lld,%lld,%lld,%lld] loc=[%lld,%lld,%lld] ne=%lld ntok=%lld\n", p,
+                fprintf(stderr, "POOLDBG p=%d rows=%lld sel=[%lld,%lld,%lld,%lld] loc=[%lld,%lld,%lld] ne=%lld ntok=%lld\n", p,
+                        (long long)rows_p,
                         (long long)selected_experts->ne[0], (long long)selected_experts->ne[1], (long long)selected_experts->ne[2], (long long)selected_experts->ne[3],
                         (long long)local_tables[p]->ne[0], (long long)local_tables[p]->ne[1], (long long)local_tables[p]->ne[2],
                         (long long)n_expert, (long long)n_tokens);
             }
-            ggml_tensor * ids_f = ggml_get_rows(ctx0, loc_t, selected_experts);   // [1, n_used, n_tokens, 1]
-            ggml_tensor * ids_p = ggml_cast(ctx0, ggml_reshape_4d(ctx0, ids_f, n_used, n_tokens, 1, 1), GGML_TYPE_I32);
-            ggml_tensor * w_p = ggml_get_rows(ctx0, msk_t, selected_experts);     // [1, n_used, n_tokens, 1]
-            w_p = ggml_mul(ctx0, weights, w_p);
+
+            ggml_tensor * ids_p;   // [rows_p, n_tokens, 1, 1] I32
+            ggml_tensor * w_p;     // [1, rows_p, n_tokens, 1] F32
+            if (budgets_active && rows_p < n_used) {
+                // compazione per pool: peso mascherato per slot, argsort desc,
+                // prime rows_p posizioni per token
+                ggml_tensor * w_sel = ggml_get_rows(ctx0, msk_t, selected_experts);   // [1, n_used, n_tokens, 1]
+                w_sel = ggml_mul(ctx0, weights, w_sel);
+
+                ggml_tensor * order = ggml_argsort(ctx0,
+                        ggml_reshape_2d(ctx0, w_sel, n_used, n_tokens), GGML_SORT_ORDER_DESC);  // I32 [n_used, n_tokens]
+                ggml_tensor * top_pos = ggml_cont(ctx0,
+                        ggml_view_2d(ctx0, order, rows_p, n_tokens, order->nb[1], 0));  // [rows_p, n_tokens] I32
+
+                ggml_tensor * sel3 = ggml_reshape_3d(ctx0, selected_experts, 1, n_used, n_tokens);
+                ggml_tensor * sel_top = ggml_get_rows(ctx0, sel3, top_pos);           // [1, rows_p, n_tokens] id globali
+                ggml_tensor * ids_f = ggml_get_rows(ctx0, loc_t, sel_top);            // [1, rows_p, n_tokens] id locali (F32)
+                ids_p = ggml_cast(ctx0, ggml_reshape_4d(ctx0, ids_f, rows_p, n_tokens, 1, 1), GGML_TYPE_I32);
+                w_p = ggml_get_rows(ctx0, ggml_reshape_3d(ctx0, w_sel, 1, n_used, n_tokens), top_pos);  // [1, rows_p, n_tokens]
+            } else {
+                ggml_tensor * ids_f = ggml_get_rows(ctx0, loc_t, selected_experts);   // [1, n_used, n_tokens, 1]
+                ids_p = ggml_cast(ctx0, ggml_reshape_4d(ctx0, ids_f, rows_p, n_tokens, 1, 1), GGML_TYPE_I32);
+                w_p = ggml_get_rows(ctx0, msk_t, selected_experts);                   // [1, n_used, n_tokens, 1]
+                w_p = ggml_mul(ctx0, weights, w_p);
+            }
 
             ggml_tensor * gate;
             ggml_tensor * upv;
             if (gate_exps_pools) {
                 // gate/up separati (es. sorgente Q8_0 ufficiale)
                 GGML_ASSERT(up_exps_pools && "pool gate richiede pool up");
-                gate = build_lora_mm_id(gate_exps_pools[p], cur, ids_p, nullptr);  // [n_ff_p, n_used, n_tokens]
+                gate = build_lora_mm_id(gate_exps_pools[p], cur, ids_p, nullptr);  // [n_ff_p, rows_p, n_tokens]
                 upv  = build_lora_mm_id(up_exps_pools[p],   cur, ids_p, nullptr);
             } else {
                 // gate/up fusi (es. quant UD): un solo mul_mat_id, poi viste
                 ggml_tensor * gate_up = build_lora_mm_id(gate_up_exps_pools[p], cur, ids_p, nullptr);
                 const int64_t n_ff_p = gate_up->ne[0] / 2;
-                gate = ggml_view_3d(ctx0, gate_up, n_ff_p, n_used, n_tokens, gate_up->nb[1], gate_up->nb[2], 0);
-                upv  = ggml_view_3d(ctx0, gate_up, n_ff_p, n_used, n_tokens, gate_up->nb[1], gate_up->nb[2], n_ff_p * gate_up->nb[0]);
+                gate = ggml_view_3d(ctx0, gate_up, n_ff_p, rows_p, n_tokens, gate_up->nb[1], gate_up->nb[2], 0);
+                upv  = ggml_view_3d(ctx0, gate_up, n_ff_p, rows_p, n_tokens, gate_up->nb[1], gate_up->nb[2], n_ff_p * gate_up->nb[0]);
             }
-            ggml_tensor * act  = ggml_swiglu_split(ctx0, gate, upv);       // [n_ff_p, n_used, n_tokens]
-            ggml_tensor * down = build_lora_mm_id(down_exps_pools[p], act, ids_p, nullptr); // [n_embd, n_used, n_tokens]
+            ggml_tensor * act  = ggml_swiglu_split(ctx0, gate, upv);       // [n_ff_p, rows_p, n_tokens]
+            ggml_tensor * down = build_lora_mm_id(down_exps_pools[p], act, ids_p, nullptr); // [n_embd, rows_p, n_tokens]
             down = ggml_mul(ctx0, down, w_p);
 
             ggml_tensor * acc = ggml_view_2d(ctx0, down, n_embd, n_tokens, down->nb[2], 0);
-            for (int64_t r = 1; r < n_used; ++r) {
+            for (int64_t r = 1; r < rows_p; ++r) {
                 acc = ggml_add(ctx0, acc, ggml_view_2d(ctx0, down, n_embd, n_tokens, down->nb[2], r*down->nb[1]));
             }
-            moe_out_p = (p == 0) ? acc : ggml_add(ctx0, moe_out_p, acc);
+            moe_out_p = (moe_out_p == nullptr) ? acc : ggml_add(ctx0, moe_out_p, acc);
         }
+        GGML_ASSERT(moe_out_p && "tutte le pool disabilitate da LLAMA_MOE_POOL_BUDGETS");
         cb(moe_out_p, "ffn_moe_out", il);
         return moe_out_p;
     }
