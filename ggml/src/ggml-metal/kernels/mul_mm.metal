@@ -372,7 +372,13 @@ kernel void kernel_mul_mm_id_map0(
 
     uint32_t n_all = 0;
 
-    device int32_t * ids_i32 = (device int32_t *) hids + ide*args.ne21;
+    // Compazione PER PAIR (row, token): con le pool per-esperto (mixed
+    // precision) piu' slot dello stesso token possono selezionare lo stesso
+    // esperto locale; ogni coppia richiede la propria entry. Per i modelli
+    // standard (un match per token) il risultato e' identico al vecchio
+    // comportamento "sel = somma degli slot matchati", che con i duplicati
+    // produceva un indice corrotto e scartava le coppie extra.
+    device int32_t * ids_i32 = (device int32_t *) hids + ide*args.ne21*args.ne20;
 
     for (int i21 = 0; i21 < args.ne21; i21 += ntg) { // n_tokens
         if (i21 + tpitg < args.ne21) {
@@ -395,15 +401,16 @@ kernel void kernel_mul_mm_id_map0(
 
             threadgroup const uint16_t * sids = (threadgroup const uint16_t *) shmem + t*ne20;
 
-            short sel = 0;
+            short nmatch = 0;
             #pragma unroll(ne20)
             for (short i20 = 0; i20 < ne20; i20++) {
-                sel += (sids[i20] == ide)*(i20 + 1);
+                if (sids[i20] == ide) {
+                    ids_i32[n_all + nmatch] = (i21 + t)*ne20 + i20;
+                    nmatch++;
+                }
             }
 
-            ids_i32[n_all] = (i21 + t)*ne20 + sel - 1;
-
-            n_all += sel > 0;
+            n_all += nmatch;
         }
 
         threadgroup_barrier(mem_flags::mem_threadgroup);
@@ -477,7 +484,7 @@ kernel void kernel_mul_mm_id(
 
     short il = il0;
 
-    const int id = ids_i32[im*args.ne21 + r1 + lr1];
+    const int id = ids_i32[im*args.ne21*args.ne20 + r1 + lr1];
 
     const short i11 = (id % args.ne20) % args.ne11;
     const short i12 = (id / args.ne20);
@@ -707,7 +714,7 @@ kernel void kernel_mul_mm_id(
     threadgroup_barrier(mem_flags::mem_threadgroup);
 
     for (short j = sgitg; j < nr1; j += 4) {
-        const int id = ids_i32[im*args.ne21 + r1 + j];
+        const int id = ids_i32[im*args.ne21*args.ne20 + r1 + j];
 
         const short ide = id % args.ne20;
         const short idt = id / args.ne20;

@@ -2591,8 +2591,11 @@ size_t ggml_metal_op_mul_mat_id_extra_ids(const ggml_tensor * op) {
 
     const int64_t ne02 = op->src[0]->ne[2]; // n_expert
     const int64_t ne21 = op->src[2]->ne[1]; // n_token
+    const int64_t ne20 = op->src[2]->ne[0]; // n_expert_used
 
-    return ggml_type_size(GGML_TYPE_I32)*ne02*ne21;
+    // per-expert lists hold up to ne21*ne20 entries: with per-expert pools
+    // several slots of the same token can select the same local expert
+    return ggml_type_size(GGML_TYPE_I32)*ne02*ne21*ne20;
 }
 
 int ggml_metal_op_mul_mat_id(ggml_metal_op_t ctx, int idx) {
@@ -2730,7 +2733,10 @@ int ggml_metal_op_mul_mat_id(ggml_metal_op_t ctx, int idx) {
 
             ggml_metal_encoder_set_threadgroup_memory_size(enc, smem, 0);
 
-            ggml_metal_encoder_dispatch_threadgroups(enc, (ne21 + 31)/32, (ne01 + 63)/64, ne02, 128, 1, 1);
+            // an expert can hold up to ne21*ne20 pairs (per-expert pools map
+            // several slots of the same token to the same local expert); the
+            // blocks past tpe[im] return immediately
+            ggml_metal_encoder_dispatch_threadgroups(enc, (ne21*ne20 + 31)/32, (ne01 + 63)/64, ne02, 128, 1, 1);
         }
     } else {
         auto pipeline = ggml_metal_library_get_pipeline_mul_mv_id(lib, op);
