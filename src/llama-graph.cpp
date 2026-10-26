@@ -2367,7 +2367,8 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
                 ggml_tensor * top_pos = ggml_cont(ctx0,
                         ggml_view_2d(ctx0, order, rows_p, n_tokens, order->nb[1], 0));  // [rows_p, n_tokens] I32
 
-                ggml_tensor * sel3 = ggml_reshape_3d(ctx0, selected_experts, 1, n_used, n_tokens);
+                ggml_tensor * sel3 = ggml_reshape_3d(ctx0,
+                        ggml_cont(ctx0, selected_experts), 1, n_used, n_tokens);  // selected_experts puo' essere una vista
                 ggml_tensor * sel_top = ggml_get_rows(ctx0, sel3, top_pos);           // [1, rows_p, n_tokens, 1] id globali
                 ggml_tensor * sel_top2 = ggml_reshape_2d(ctx0, sel_top, rows_p, n_tokens);  // get_rows: b->ne[1] = n_tokens
                 ggml_tensor * ids_f = ggml_get_rows(ctx0, loc_t, sel_top2);           // [1, rows_p, n_tokens, 1] id locali (F32)
