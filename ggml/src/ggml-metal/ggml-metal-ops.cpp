@@ -2678,6 +2678,13 @@ int ggml_metal_op_mul_mat_id(ggml_metal_op_t ctx, int idx) {
             };
 
             auto pipeline = ggml_metal_library_get_pipeline_mul_mm_id_map0(lib, ne02, ne20);
+            if (!pipeline.pipeline) {
+                // n_expert_used senza variante compilata (vedi le istanze
+                // kernel_mul_mm_id_map0_ne20_* in mul_mm.metal): abortire con
+                // un messaggio chiaro invece di dereferenziare NULL
+                GGML_ABORT("%s: nessuna pipeline kernel_mul_mm_id_map0 per n_expert_used = %d "
+                           "(aggiungere l'istanza ne20_%d in mul_mm.metal)", __func__, (int) ne20, (int) ne20);
+            }
 
             const size_t smem = pipeline.smem;
 

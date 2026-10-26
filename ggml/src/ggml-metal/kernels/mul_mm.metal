@@ -424,13 +424,23 @@ typedef decltype(kernel_mul_mm_id_map0<1>) kernel_mul_mm_id_map0_t;
 
 template [[host_name("kernel_mul_mm_id_map0_ne20_1" )]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<1>;
 template [[host_name("kernel_mul_mm_id_map0_ne20_2" )]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<2>;
+template [[host_name("kernel_mul_mm_id_map0_ne20_3" )]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<3>;
 template [[host_name("kernel_mul_mm_id_map0_ne20_4" )]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<4>;
 template [[host_name("kernel_mul_mm_id_map0_ne20_5" )]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<5>;
 template [[host_name("kernel_mul_mm_id_map0_ne20_6" )]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<6>;
+template [[host_name("kernel_mul_mm_id_map0_ne20_7" )]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<7>;
 template [[host_name("kernel_mul_mm_id_map0_ne20_8" )]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<8>;
+template [[host_name("kernel_mul_mm_id_map0_ne20_9" )]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<9>;
 template [[host_name("kernel_mul_mm_id_map0_ne20_10")]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<10>;
+template [[host_name("kernel_mul_mm_id_map0_ne20_12")]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<12>;
+template [[host_name("kernel_mul_mm_id_map0_ne20_14")]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<14>;
 template [[host_name("kernel_mul_mm_id_map0_ne20_16")]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<16>;
+template [[host_name("kernel_mul_mm_id_map0_ne20_18")]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<18>;
+template [[host_name("kernel_mul_mm_id_map0_ne20_20")]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<20>;
 template [[host_name("kernel_mul_mm_id_map0_ne20_22")]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<22>;
+template [[host_name("kernel_mul_mm_id_map0_ne20_24")]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<24>;
+template [[host_name("kernel_mul_mm_id_map0_ne20_28")]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<28>;
+template [[host_name("kernel_mul_mm_id_map0_ne20_32")]] kernel kernel_mul_mm_id_map0_t kernel_mul_mm_id_map0<32>;
 
 template<typename S0, typename S0_4x4, typename S0_8x8, typename S1, typename S1_2x4, typename S1_8x8, typename block_q, short nl, void (*dequantize_func)(device const block_q *, short, thread S0_4x4 &), typename T0, typename T0_4x4, typename T1, typename T1_2x4>
 kernel void kernel_mul_mm_id(
