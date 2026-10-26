@@ -2368,8 +2368,9 @@ ggml_tensor * llm_graph_context::build_moe_ffn(
                         ggml_view_2d(ctx0, order, rows_p, n_tokens, order->nb[1], 0));  // [rows_p, n_tokens] I32
 
                 ggml_tensor * sel3 = ggml_reshape_3d(ctx0, selected_experts, 1, n_used, n_tokens);
-                ggml_tensor * sel_top = ggml_get_rows(ctx0, sel3, top_pos);           // [1, rows_p, n_tokens] id globali
-                ggml_tensor * ids_f = ggml_get_rows(ctx0, loc_t, sel_top);            // [1, rows_p, n_tokens] id locali (F32)
+                ggml_tensor * sel_top = ggml_get_rows(ctx0, sel3, top_pos);           // [1, rows_p, n_tokens, 1] id globali
+                ggml_tensor * sel_top2 = ggml_reshape_2d(ctx0, sel_top, rows_p, n_tokens);  // get_rows: b->ne[1] = n_tokens
+                ggml_tensor * ids_f = ggml_get_rows(ctx0, loc_t, sel_top2);           // [1, rows_p, n_tokens, 1] id locali (F32)
                 ids_p = ggml_cast(ctx0, ggml_reshape_4d(ctx0, ids_f, rows_p, n_tokens, 1, 1), GGML_TYPE_I32);
                 w_p = ggml_get_rows(ctx0, ggml_reshape_3d(ctx0, w_sel, 1, n_used, n_tokens), top_pos);  // [1, rows_p, n_tokens]
             } else {
