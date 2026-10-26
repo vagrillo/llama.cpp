@@ -51,8 +51,15 @@ keeps working because the routing is untouched.
 
 Performance note: the per-pool compute evaluates `n_used` rows per pool
 (4 × 20 expert evaluations per token instead of 20) — the FFN overhead is ~4×
-in decode. Later versions can reduce it with per-pool budgets based on the p99
-of per-token counts (argsort per pool + fixed-budget views).
+in decode. **Per-pool budgets** remove most of it: with
+`LLAMA_MOE_POOL_BUDGETS=K0,K1,K2,K3` every pool sorts its slots by masked
+weight per token (argsort desc) and evaluates only the first `K_p` rows; the
+dropped slots carry negligible or zero weight. Suggested budgets from the
+usage ranking: `10,5,3,2` (20 rows total instead of 80) — measured on Apple
+Silicon: ~2× prefill and a large decode speedup; `K_p ≥ n_used` or unset env
+keeps the dense behavior. The compacted ids may contain duplicate local
+experts (zero-weight slots), which every `mul_mat_id` path compacts per
+(token, slot) pair since the per-pair fixes.
 
 ## Expert-usage tracking (to generate the ranking)
 
